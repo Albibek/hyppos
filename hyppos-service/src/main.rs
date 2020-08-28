@@ -1,49 +1,66 @@
-extern crate chrono;
-#[macro_use]
-extern crate diesel;
-extern crate dotenv;
+mod auth;
+#[allow(dead_code)]
+mod github;
 
-use diesel::prelude::*;
+use actix_files as fs;
+use actix_web::{middleware::Logger, web, App, HttpResponse, HttpServer, Responder};
 
-mod comments;
+use actix_session::{CookieSession, Session};
 
-fn main() {
-    let database_url = dotenv::var("DATABASE_URL").expect("DATABASE_URL must be set");
-    let conn = PgConnection::establish(&database_url).unwrap();
+use crate::auth::AuthState;
+pub(crate) async fn index(session: Session) -> impl Responder {
+    HttpResponse::Ok().body(format!(
+        "Hello, {}",
+        session
+            .get("token")
+            .unwrap_or(None)
+            .unwrap_or("mr. anonymous".to_string())
+    ))
+}
 
-    let first = comments::insert_new_comment(
-        &comments::models::NewComment {
-            parent_id: None,
-            message: String::from("Level 1"),
-            user_id: uuid::Uuid::new_v4(),
-            project_id: uuid::Uuid::new_v4(),
-            hash: None,
-            file_id: uuid::Uuid::new_v4(),
-            line_no: None,
-        },
-        &conn,
-    )
-    .unwrap();
+#[derive(Clone)]
+struct State {
+    auth: AuthState,
+}
 
-    println!("Created comment with ID {}", first.id);
-
-    let _ = comments::insert_new_comment(
-        &comments::models::NewComment {
-            parent_id: Some(first.id),
-            message: String::from("Level 2"),
-            user_id: uuid::Uuid::new_v4(),
-            project_id: uuid::Uuid::new_v4(),
-            hash: None,
-            file_id: uuid::Uuid::new_v4(),
-            line_no: None,
-        },
-        &conn,
-    )
-    .unwrap();
-
-    let c = comments::find_comment_by_id(first.id, &conn).unwrap();
-    match c {
-        Some(com) => println!("Created comment with text {}", com.message),
-        _ => panic!("No such comment"),
+impl State {
+    pub(crate) fn new() -> Self {
+        Self {
+            auth: auth::configure(),
+        }
     }
+}
+
+#[actix_rt::main]
+async fn main() -> std::io::Result<()> {
+    //  std::env::set_var(
+    //"RUST_LOG",
+    //"actix_example=info,actix_web=info,actix_http=info,actix_service=info",
+    //  );
+    env_logger::init();
+
+    let state = State::new();
+    HttpServer::new(move || {
+        App::new()
+            .data(state.clone())
+            .wrap(auth::AuthCheck)
+            .wrap(
+                CookieSession::private(&[0; 32])
+                    .secure(false)
+                    .max_age(60)
+                    .name("session"),
+            )
+            .wrap(Logger::default())
+            .service(fs::Files::new("/static", "../static"))
+            .route("/auth/login", web::get().to(auth::login))
+            .route("/auth/login", web::post().to(auth::login))
+            .route("/auth/logout", web::post().to(auth::logout))
+            .route("/auth/callback", web::get().to(auth::callback))
+            .route("/auth", web::post().to(auth::index))
+            .route("/comments", web::get().to(index))
+            .route("/", web::get().to(index))
+    })
+    .bind("127.0.0.1:8000")?
+    .run()
+    .await
 }

@@ -29,7 +29,7 @@ const App = React.memo(
             <Switch>
               <Route path="/" exact={true} component={MainPage}/>
               <Route path="/projects" exact={true} component={ProjectsPage}/>
-              <Route path="/review/:projectName" exact={true} component={ReviewPage}/>
+              <Route path="/projects/:projectName/review" exact={true} component={ReviewPage}/>
 
               <Redirect to="/404"/>
             </Switch>

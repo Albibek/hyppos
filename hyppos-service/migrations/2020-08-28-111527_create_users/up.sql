@@ -1,0 +1,6 @@
+CREATE TABLE users (
+  id UUID PRIMARY KEY,
+
+  external_id BIGINT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
+);

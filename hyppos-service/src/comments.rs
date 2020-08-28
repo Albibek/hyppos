@@ -36,15 +36,14 @@ pub fn insert_new_comment(
             Some(i) => i.to_owned(),
             None => _id,
         },
-        message: comment.message.to_owned(),
-        user_id: comment.user_id,
-        project_id: comment.project_id,
-        hash: comment.hash.to_owned(),
-        file_id: comment.file_id,
+        user_id: comment.user_id.to_owned(),
+        project_id: comment.project_id.to_owned(),
+        commit_id: comment.commit_id.to_owned(),
+        file_id: comment.file_id.to_owned(),
         line_no: comment.line_no,
-        is_deleted: false,
-
+        message: comment.message.to_owned(),
         created_at: Utc::now().to_owned(),
+        is_deleted: false,
     };
 
     diesel::insert_into(comments)

@@ -1,0 +1,8 @@
+[package]
+name = "hyppos-service"
+version = "0.1.0"
+authors = ["Sergey Noskov <albibek@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+actix-web = "2.0"

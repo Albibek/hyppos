@@ -1,7 +1,12 @@
 table! {
     comments (id) {
-        id -> Text,
-        parent_id -> Nullable<Text>,
+        id -> Uuid,
+        parent_id -> Nullable<Uuid>,
+        user_id -> Uuid,
+        project_id -> Uuid,
+        hash -> Nullable<Text>,
+        file_id -> Uuid,
+        line_no -> Nullable<Int8>,
         message -> Text,
         created_at -> Timestamptz,
         is_deleted -> Bool,

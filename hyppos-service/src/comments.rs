@@ -4,33 +4,43 @@ use chrono::Utc;
 
 use crate::models;
 
-pub fn find_comment_by_uid(
-    uid: String,
+pub fn find_comment_by_id(
+    cid: uuid::Uuid,
     conn: &PgConnection,
 ) -> Result<Option<models::Comment>, diesel::result::Error> {
     use crate::schema::comments::dsl::*;
 
-    let user = comments
-        .filter(id.eq(uid.to_string()))
+    let comment = comments
+        .filter(id.eq(cid))
         .first::<models::Comment>(conn)
         .optional()?;
 
-    Ok(user)
+    Ok(comment)
 }
 
 pub fn insert_new_comment(
-    pid: &Option<String>,
-    msg: &str,
+    comment: &models::NewComment,
     conn: &PgConnection,
 ) -> Result<models::Comment, diesel::result::Error> {
     use crate::schema::comments::dsl::*;
 
+    let _id = Uuid::new_v4();
+
     let new_comment = models::Comment {
-        id: Uuid::new_v4().to_string(),
-        parent_id: pid.to_owned(),
-        message: msg.to_owned(),
-        created_at: Utc::now().to_owned(),
+        id: _id,
+        parent_id: match comment.parent_id {
+            Some(i) => i.to_owned(),
+            None => _id,
+        },
+        message: comment.message.to_owned(),
+        user_id: comment.user_id,
+        project_id: comment.project_id,
+        hash: comment.hash.to_owned(),
+        file_id: comment.file_id,
+        line_no: comment.line_no,
         is_deleted: false,
+
+        created_at: Utc::now().to_owned(),
     };
 
     diesel::insert_into(comments).values(&new_comment).execute(conn)?;

@@ -15,3 +15,4 @@ CREATE TABLE comments (
 );
 
 CREATE INDEX ON comments(parent_id);
+CREATE INDEX ON comments(file_id);

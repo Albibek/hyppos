@@ -128,7 +128,7 @@ pub(crate) async fn callback(
 
     // TODO: replace hardcode
     HttpResponse::TemporaryRedirect()
-        .header("location", "http://127.0.0.1:3000")
+        .header("location", "http://127.0.0.1:3000/login?success=true")
         .finish()
 }
 

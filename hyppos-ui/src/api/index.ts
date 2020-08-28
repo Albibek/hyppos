@@ -1,7 +1,8 @@
 import { gatewayClient } from "./client";
+import { from } from "rxjs";
 
 function logout() {
-  return gatewayClient.get("/auth/logout")
+  return from(gatewayClient.get("/auth/logout"))
 }
 
 

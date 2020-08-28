@@ -1,15 +1,24 @@
 import React from "react";
 import classes from "./classes.module.scss";
-import { Col, Layout as AntLayout, Menu, Row, Space } from "antd";
+import { Button, Col, Layout as AntLayout, Menu, Row, Space } from "antd";
 import { ReactComponent as LogoIcon } from "../assets/logo.svg"
 import { currentHistory } from "../history";
 import { ReactComponent as AvitoLogoIcon } from "../assets/avitoLogo.svg";
+import { observer } from "mobx-react-lite";
+import { useRootStore } from "../store/RootStore";
+import { Redirect } from "react-router";
+import { ExportOutlined } from "@ant-design/icons/lib";
 
 const { Header, Content, Footer } = AntLayout
 
-export const Layout: React.FC = React.memo(
-  function LoginPage({ children }) {
+export const Layout: React.FC = observer(
+  function Layout({ children }) {
+    const { authStore: { isLoggedIn, logout } } = useRootStore()
     const currentPath = currentHistory.location.pathname
+
+    if (!isLoggedIn) {
+      return <Redirect to="/login"/>
+    }
 
     return (
       <AntLayout className={classes.root}>
@@ -23,6 +32,15 @@ export const Layout: React.FC = React.memo(
                 <Menu.Item key="/" onClick={() => currentHistory.push("/")}>Главная</Menu.Item>
                 <Menu.Item key="/projects" onClick={() => currentHistory.push("/projects")}>Проекты</Menu.Item>
               </Menu>
+            </Col>
+            <Col>
+              <Button
+                type="primary"
+                icon={<ExportOutlined/>}
+                onClick={logout}
+              >
+                выйти
+              </Button>
             </Col>
           </Row>
         </Header>

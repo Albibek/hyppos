@@ -4,12 +4,14 @@ import classes from "./classes.module.scss";
 import { ReactComponent as LogoIcon } from "../../assets/logo.svg";
 import { GithubOutlined } from "@ant-design/icons/lib";
 import { currentHistory } from "../../history";
-import { useLocation } from "react-router";
+import { Redirect, useLocation } from "react-router";
 import { config } from "../../config";
-import { api } from "../../api";
+import { observer } from "mobx-react-lite";
+import { useRootStore } from "../../store/RootStore";
 
-export const LoginPage = React.memo(
+export const LoginPage = observer(
   function LoginPage() {
+    const { authStore } = useRootStore()
     const location = useLocation()
 
     const redirectToOAuth = () => {
@@ -19,9 +21,13 @@ export const LoginPage = React.memo(
       window.location.replace(`${config.gatewayUrl}/auth/login`)
     }
 
-    api.logout().then(res => {
-      console.log(res)
-    })
+    const loginSuccess = new URLSearchParams(location.search).get("success")
+
+    if (loginSuccess) {
+      authStore.login()
+
+      return <Redirect to="/"/>
+    }
 
     return (
       <Layout className={classes.root}>

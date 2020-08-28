@@ -22,6 +22,7 @@ use oauth2::{
 
 use serde::Deserialize;
 
+use crate::github_types;
 use crate::State;
 
 pub static GITHUB_CLIENT_ID: &'static str = "e024d6957a492c88efdb";
@@ -51,8 +52,8 @@ pub(crate) fn configure() -> AuthState {
 }
 
 pub(crate) async fn index(session: Session) -> impl Responder {
-    let login = session.get::<String>("login").unwrap();
-    let link = if login.is_some() { "logout" } else { "login" };
+    let user = session.get::<github_types::User>("user").unwrap();
+    let link = if user.is_some() { "logout" } else { "login" };
 
     let html = format!(
         r#"<html>
@@ -61,7 +62,11 @@ pub(crate) async fn index(session: Session) -> impl Responder {
             {} <a href="/{}">{}</a>
         </body>
     </html>"#,
-        login.unwrap_or("".to_string()),
+        user.unwrap_or(github_types::User {
+            login: "anonymous".into(),
+            id: 0
+        })
+        .login,
         link,
         link
     );
@@ -103,14 +108,14 @@ pub(crate) struct AuthRequest {
 
 pub(crate) async fn callback(
     session: Session,
-    data: web::Data<State>,
+    state: web::Data<State>,
     params: web::Query<AuthRequest>,
 ) -> HttpResponse {
     let code = AuthorizationCode::new(params.code.clone());
     let _state = CsrfToken::new(params.state.clone());
 
     // Exchange the code with a token.
-    let token = &data.auth.client.exchange_code(code).request(http_client);
+    let token = &state.auth.client.exchange_code(code).request(http_client);
     let token = match token {
         Ok(token) => token,
         Err(e) => {
@@ -118,18 +123,30 @@ pub(crate) async fn callback(
         }
     };
 
-    info!("access token: {:?}", token.access_token());
+    let token = token.access_token().secret();
+    info!("access token: {:?}", token);
     session
         .set(
             "token",
-            serde_json::to_string(token.access_token()).expect("serializing token"),
+            serde_json::to_string(token).expect("serializing token"),
         )
         .expect("setting session field");
 
-    // TODO: replace hardcode
-    HttpResponse::TemporaryRedirect()
-        .header("location", "http://127.0.0.1:3000/login?success=true")
-        .finish()
+    let user: github_types::User = state.github.for_token(token).get_user().await.unwrap();
+    session.set("user", user).expect("setting user data");
+
+    let html = format!(
+        r#"<html>
+        <head><title>OAuth2 Test</title></head>
+        <body>
+            Github user info:
+            <pre>{:?}</pre>
+            <a href="/">Home</a>
+        </body>
+    </html>"#,
+        serde_json::to_string(token)
+    );
+    HttpResponse::Ok().body(html)
 }
 
 pub(crate) struct AuthCheck;

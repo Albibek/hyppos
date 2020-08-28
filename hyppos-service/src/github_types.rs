@@ -1,9 +1,15 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone)]
 pub struct Repo {
     pub owner: String,
     pub name: String,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct User {
+    pub id: i64,
+    pub login: String,
 }
 
 #[derive(Debug, Clone, Deserialize)]

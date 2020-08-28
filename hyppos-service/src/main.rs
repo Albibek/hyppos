@@ -1,12 +1,13 @@
 mod auth;
-mod browse;
+#[allow(dead_code)]
+mod github;
 
 use actix_files as fs;
 use actix_web::{middleware::Logger, web, App, HttpResponse, HttpServer, Responder};
 
 use actix_session::{CookieSession, Session};
 
-use crate::auth::{auth_handler, AuthState};
+use crate::auth::AuthState;
 pub(crate) async fn index(session: Session) -> impl Responder {
     HttpResponse::Ok().body(format!(
         "Hello, {}",
@@ -16,8 +17,6 @@ pub(crate) async fn index(session: Session) -> impl Responder {
             .unwrap_or("mr. anonymous".to_string())
     ))
 }
-
-use actix::Actor;
 
 #[derive(Clone)]
 struct State {
@@ -31,8 +30,6 @@ impl State {
         }
     }
 }
-
-static BASE_URL: &str = "http://127.0.0.1:8000";
 
 #[actix_rt::main]
 async fn main() -> std::io::Result<()> {

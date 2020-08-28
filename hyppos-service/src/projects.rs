@@ -23,7 +23,8 @@ pub fn find_project_by_id(
 }
 
 pub fn insert_new_project(
-    ext_id: &i64,
+    uid: uuid::Uuid,
+    ext_id: i64,
     conn: &PgConnection,
 ) -> Result<Project, diesel::result::Error> {
     use crate::schema::projects::dsl::*;
@@ -32,6 +33,7 @@ pub fn insert_new_project(
 
     let new_project = Project {
         id: _id,
+        user_id: uid.to_owned,
         external_id: ext_id,
         created_at: Utc::now().to_owned(),
     };

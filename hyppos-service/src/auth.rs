@@ -4,32 +4,25 @@ use std::task::{Context, Poll};
 
 use futures::future::{ok, Ready};
 
-use actix_web::{web, App, HttpResponse, HttpServer, Responder};
+use actix_web::{web, HttpResponse, Responder};
 
-pub(crate) async fn auth_handler() -> impl Responder {
-    HttpResponse::Ok().body("Hello world!")
-}
-
-use actix_service::ServiceFactory;
 use actix_service::{Service, Transform};
-use actix_session::{CookieSession, Session, UserSession};
+use actix_session::{Session, UserSession};
 use actix_web::{
     dev::ServiceRequest, dev::ServiceResponse, http::header, http::StatusCode,
     Error as ActixWebError,
 };
-use http::{HeaderMap, Method};
 use log::info;
 use oauth2::basic::BasicClient;
 use oauth2::reqwest::http_client;
 use oauth2::{
-    AccessToken, AuthUrl, AuthorizationCode, ClientId, ClientSecret, CsrfToken, PkceCodeChallenge,
+    AuthUrl, AuthorizationCode, ClientId, ClientSecret, CsrfToken, PkceCodeChallenge,
     RedirectUrl, Scope, TokenResponse, TokenUrl,
 };
 
 use serde::Deserialize;
-use url::Url;
 
-use crate::{State, BASE_URL};
+use crate::State;
 
 pub static GITHUB_CLIENT_ID: &'static str = "e024d6957a492c88efdb";
 pub static GITHUB_CLIENT_SECRET: &'static str = "2cbfe08ef31906c50b94e3cbe63847c95d64d06b";

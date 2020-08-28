@@ -63,7 +63,6 @@ pub(crate) async fn insert_comment(
     state: web::Data<State>,
     new_comment: web::Json<NewComment>,
 ) -> Result<HttpResponse, ActixWebError> {
-    dbg!("HI");
     let conn = state
         .pool
         .get()

@@ -182,7 +182,7 @@ where
     fn call(&mut self, req: ServiceRequest) -> Self::Future {
         let session = req.get_session();
         let has_token = session.get::<String>("token").unwrap_or(None).is_some();
-        if has_token || req.uri().path().starts_with("/auth") || req.uri().path() == "/" || true {
+        if has_token || true {
             info!("user authorized");
             let fut = self.service.call(req);
 

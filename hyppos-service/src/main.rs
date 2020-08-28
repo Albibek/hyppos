@@ -62,7 +62,6 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(move || {
         App::new()
             .data(state.clone())
-            .wrap(auth::AuthCheck)
             .wrap(
                 CookieSession::private(&[0; 32])
                     .secure(false)
@@ -71,15 +70,18 @@ async fn main() -> std::io::Result<()> {
             )
             .wrap(Logger::default())
             .service(fs::Files::new("/static", "../static"))
-            //.service(web::scope("").route("/comments", web::post().to(comments::insert_comment)))
-            .route("/comments", web::post().to(comments::insert_comment))
             .route("/auth/login", web::get().to(auth::login))
-            .route("/auth/login", web::post().to(auth::login))
-            .route("/auth/logout", web::get().to(auth::logout))
             .route("/auth/callback", web::get().to(auth::callback))
             .route("/auth", web::post().to(auth::index))
-            //.route("/comments", web::get().to(comments::handlers::get_comments))
+            .route("/favicon.ico", web::get().to(index))
             .route("/", web::get().to(index))
+            .service(
+                // this must be at the end of all routes
+                web::scope("/")
+                    .wrap(auth::AuthCheck)
+                    .route("/comments", web::post().to(comments::insert_comment))
+                    .route("/auth/logout", web::get().to(auth::logout)),
+            )
     })
     .bind("127.0.0.1:8000")?
     .run()

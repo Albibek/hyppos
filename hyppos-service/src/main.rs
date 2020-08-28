@@ -19,6 +19,8 @@ use actix_web::{middleware::Logger, web, App, HttpResponse, HttpServer, Responde
 
 use actix_session::{CookieSession, Session};
 
+use actix_cors::Cors;
+
 use crate::auth::AuthState;
 
 pub(crate) async fn index(session: Session) -> impl Responder {
@@ -69,6 +71,15 @@ async fn main() -> std::io::Result<()> {
                     .name("session"),
             )
             .wrap(Logger::default())
+            .wrap(
+                Cors::new()
+                    .allowed_origin("127.0.0.1:3000")
+                    .allowed_methods(vec!["GET", "POST", "OPTIONS"])
+                    //.allowed_headers(vec![http::header::AUTHORIZATION, http::header::ACCEPT])
+                    //.allowed_header(http::header::CONTENT_TYPE)
+                    .max_age(3600)
+                    .finish(),
+            )
             .service(fs::Files::new("/static", "../static"))
             .route("/auth/login", web::get().to(auth::login))
             .route("/auth/callback", web::get().to(auth::callback))

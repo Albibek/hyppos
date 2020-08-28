@@ -22,6 +22,20 @@ pub fn find_comments_by_user_id(
     Ok(all_comments)
 }
 
+pub fn find_comments_by_file_id(
+    fid: String,
+    conn: &PgConnection,
+) -> Result<Option<Vec<Comment>>, diesel::result::Error> {
+    use crate::schema::comments::dsl::*;
+
+    let all_comments = comments
+        .filter(file_id.eq(fid))
+        .load::<Comment>(conn)
+        .optional()?;
+
+    Ok(all_comments)
+}
+
 pub fn insert_new_comment(
     comment: &NewComment,
     conn: &PgConnection,

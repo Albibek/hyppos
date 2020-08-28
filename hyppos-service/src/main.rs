@@ -11,7 +11,7 @@ mod schema;
 
 use diesel::prelude::*;
 
-use self::comments::*;
+use crate::comments::*;
 
 fn main() {
     let database_url = dotenv::var("DATABASE_URL").expect("DATABASE_URL must be set");

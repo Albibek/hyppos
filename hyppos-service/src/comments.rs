@@ -1,6 +1,6 @@
+use chrono::Utc;
 use diesel::prelude::*;
 use uuid::Uuid;
-use chrono::Utc;
 
 use crate::models;
 
@@ -28,10 +28,11 @@ pub fn insert_new_comment(
 
     let new_comment = models::Comment {
         id: _id,
-        parent_id: match comment.parent_id {
-            Some(i) => i.to_owned(),
-            None => _id,
-        },
+        //parent_id: match comment.parent_id {
+        //Some(i) => i.to_owned(),
+        //None => _id,
+        //},
+        parent_id: comment.parent_id,
         message: comment.message.to_owned(),
         user_id: comment.user_id,
         project_id: comment.project_id,
@@ -43,7 +44,9 @@ pub fn insert_new_comment(
         created_at: Utc::now().to_owned(),
     };
 
-    diesel::insert_into(comments).values(&new_comment).execute(conn)?;
+    diesel::insert_into(comments)
+        .values(&new_comment)
+        .execute(conn)?;
 
     Ok(new_comment)
 }

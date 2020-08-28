@@ -1,6 +1,6 @@
 CREATE TABLE comments (
   id UUID PRIMARY KEY,
-  parent_id UUID REFERENCES comments (id),
+  parent_id UUID NOT NULL REFERENCES comments (id),
 
   user_id UUID NOT NULL,
   project_id UUID NOT NULL,

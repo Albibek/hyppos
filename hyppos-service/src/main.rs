@@ -3,22 +3,16 @@ extern crate chrono;
 extern crate diesel;
 extern crate dotenv;
 
-use uuid::Uuid;
-
-mod comments;
-mod models;
-mod schema;
-
 use diesel::prelude::*;
 
-use crate::comments::*;
+mod comments;
 
 fn main() {
     let database_url = dotenv::var("DATABASE_URL").expect("DATABASE_URL must be set");
     let conn = PgConnection::establish(&database_url).unwrap();
 
-    let first = insert_new_comment(
-        &models::NewComment {
+    let first = comments::insert_new_comment(
+        &comments::models::NewComment {
             parent_id: None,
             message: String::from("Level 1"),
             user_id: uuid::Uuid::new_v4(),
@@ -33,8 +27,8 @@ fn main() {
 
     println!("Created comment with ID {}", first.id);
 
-    let _ = insert_new_comment(
-        &models::NewComment {
+    let _ = comments::insert_new_comment(
+        &comments::models::NewComment {
             parent_id: Some(first.id),
             message: String::from("Level 2"),
             user_id: uuid::Uuid::new_v4(),
@@ -47,7 +41,7 @@ fn main() {
     )
     .unwrap();
 
-    let c = find_comment_by_id(first.id, &conn).unwrap();
+    let c = comments::find_comment_by_id(first.id, &conn).unwrap();
     match c {
         Some(com) => println!("Created comment with text {}", com.message),
         _ => panic!("No such comment"),

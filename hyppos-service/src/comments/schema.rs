@@ -1,7 +1,7 @@
 table! {
     comments (id) {
         id -> Uuid,
-        parent_id -> Nullable<Uuid>,
+        parent_id -> Uuid,
         user_id -> Uuid,
         project_id -> Uuid,
         hash -> Nullable<Text>,

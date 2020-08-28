@@ -1,3 +1,5 @@
+use diesel::prelude::*;
+
 table! {
     comments (id) {
         id -> Uuid,

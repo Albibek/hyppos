@@ -1,15 +1,15 @@
+use chrono::Utc;
 use diesel::prelude::*;
 use uuid::Uuid;
-use chrono::Utc;
 
-pub mod models;
-pub mod schema;
+use crate::models;
 
 pub fn find_comment_by_id(
     cid: uuid::Uuid,
     conn: &PgConnection,
 ) -> Result<Option<models::Comment>, diesel::result::Error> {
-    use crate::comments::schema::comments::dsl::*;
+    //use crate::comments::schema::comments::dsl::*;
+    use crate::schema::comments::dsl::*;
 
     let comment = comments
         .filter(id.eq(cid))
@@ -23,7 +23,7 @@ pub fn insert_new_comment(
     comment: &models::NewComment,
     conn: &PgConnection,
 ) -> Result<models::Comment, diesel::result::Error> {
-    use crate::comments::schema::comments::dsl::*;
+    use crate::schema::comments::dsl::*;
 
     let _id = Uuid::new_v4();
 
@@ -44,7 +44,9 @@ pub fn insert_new_comment(
         created_at: Utc::now().to_owned(),
     };
 
-    diesel::insert_into(comments).values(&new_comment).execute(conn)?;
+    diesel::insert_into(comments)
+        .values(&new_comment)
+        .execute(conn)?;
 
     Ok(new_comment)
 }

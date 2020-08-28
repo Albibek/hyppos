@@ -12,6 +12,7 @@ mod schema;
 extern crate diesel;
 
 use diesel::prelude::*;
+use diesel::r2d2::{ConnectionManager, Pool};
 
 use actix_files as fs;
 use actix_web::{middleware::Logger, web, App, HttpResponse, HttpServer, Responder};
@@ -33,12 +34,22 @@ pub(crate) async fn index(session: Session) -> impl Responder {
 #[derive(Clone)]
 struct State {
     auth: AuthState,
+    pool: Pool<ConnectionManager<PgConnection>>,
 }
 
 impl State {
     pub(crate) fn new() -> Self {
+        let database_url = dotenv::var("DATABASE_URL").expect("DATABASE_URL must be set");
+        let conn = PgConnection::establish(&database_url).unwrap();
+        // set up database connection pool
+        let manager = ConnectionManager::<PgConnection>::new(database_url);
+        let pool = Pool::builder()
+            .build(manager)
+            .expect("Failed to create pool.");
+
         Self {
             auth: auth::configure(),
+            pool,
         }
     }
 }
@@ -60,13 +71,14 @@ async fn main() -> std::io::Result<()> {
             )
             .wrap(Logger::default())
             .service(fs::Files::new("/static", "../static"))
+            //.service(web::scope("").route("/comments", web::post().to(comments::insert_comment)))
+            .route("/comments", web::post().to(comments::insert_comment))
             .route("/auth/login", web::get().to(auth::login))
             .route("/auth/login", web::post().to(auth::login))
             .route("/auth/logout", web::get().to(auth::logout))
             .route("/auth/callback", web::get().to(auth::callback))
             .route("/auth", web::post().to(auth::index))
             //.route("/comments", web::get().to(comments::handlers::get_comments))
-            .route("/comments", web::post().to(index))
             .route("/", web::get().to(index))
     })
     .bind("127.0.0.1:8000")?

@@ -58,7 +58,7 @@ pub fn insert_new_comment(
 
     Ok(new_comment)
 }
-  `
+`
 
 export const ReviewPage = React.memo(
   function ReviewPage() {

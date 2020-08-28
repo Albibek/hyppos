@@ -1,8 +1,9 @@
 import React from "react";
-import { Col, Divider, Layout as AntLayout, Menu, Row } from "antd";
 import classes from "./classes.module.scss";
+import { Col, Layout as AntLayout, Menu, Row, Space } from "antd";
 import { ReactComponent as LogoIcon } from "../assets/logo.svg"
 import { currentHistory } from "../history";
+import { ReactComponent as AvitoLogoIcon } from "../assets/avitoLogo.svg";
 
 const { Header, Content, Footer } = AntLayout
 
@@ -33,8 +34,12 @@ export const Layout: React.FC = React.memo(
         </Content>
 
         <Footer style={{ textAlign: "center" }}>
+          <AvitoLogoIcon style={{ width: 10, height: 10 }}/>
+
+          <span style={{ marginLeft: 5 }}>
           {/* eslint-disable-next-line react/no-unescaped-entities */}
-          AvitoHack: Погружение ©2020, создано командой "Альтернативные Гиппопотамы"
+            AvitoHack: Погружение ©2020, создано командой "Альтернативные Гиппопотамы"
+          </span>
         </Footer>
       </AntLayout>
     )

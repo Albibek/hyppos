@@ -126,18 +126,10 @@ pub(crate) async fn callback(
         )
         .expect("setting session field");
 
-    let html = format!(
-        r#"<html>
-        <head><title>OAuth2 Test</title></head>
-        <body>
-            Github user info:
-            <pre>{:?}</pre>
-            <a href="/">Home</a>
-        </body>
-    </html>"#,
-        serde_json::to_string(token.access_token())
-    );
-    HttpResponse::Ok().body(html)
+    // TODO: replace hardcode
+    HttpResponse::TemporaryRedirect()
+        .header("location", "http://127.0.0.1:3000")
+        .finish()
 }
 
 pub(crate) struct AuthCheck;

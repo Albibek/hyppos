@@ -2,11 +2,13 @@ use chrono::Utc;
 use diesel::prelude::*;
 use uuid::Uuid;
 
+use actix_session::Session;
 use actix_web::{web, Error as ActixWebError, HttpResponse, Responder};
 use serde::Serialize;
 
 use crate::models::{Comment, NewComment};
 use crate::State;
+use crate::{github_types, projects, users};
 
 pub fn find_comments_by_user_id(
     uid: uuid::Uuid,
@@ -73,6 +75,7 @@ struct InsertResponse {
 }
 
 pub(crate) async fn insert_comment(
+    session: Session,
     state: web::Data<State>,
     new_comment: web::Json<NewComment>,
 ) -> Result<HttpResponse, ActixWebError> {
@@ -80,7 +83,13 @@ pub(crate) async fn insert_comment(
         .pool
         .get()
         .expect("couldn't get db connection from pool");
+
+    let user = session.get::<github_types::User>("user").unwrap().unwrap();
     let resp = web::block(move || {
+        let db_user = users::find_user_by_ext_id(user.id, &conn).expect("finding user by ID");
+        if db_user.is_none() {
+            users::insert_new_user(user.id, &conn).expect("inserting new user");
+        }
         insert_new_comment(&new_comment, &conn).expect("inserting new comment");
         Ok::<_, ()>(InsertResponse {
             status: "ok".to_string(),

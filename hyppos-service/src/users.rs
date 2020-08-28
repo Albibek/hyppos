@@ -14,18 +14,26 @@ pub fn find_user_by_id(
 ) -> Result<Option<User>, diesel::result::Error> {
     use crate::schema::users::dsl::*;
 
+    let user = users.filter(id.eq(uid)).first::<User>(conn).optional()?;
+
+    Ok(user)
+}
+
+pub fn find_user_by_ext_id(
+    eid: i64,
+    conn: &PgConnection,
+) -> Result<Option<User>, diesel::result::Error> {
+    use crate::schema::users::dsl::*;
+
     let user = users
-        .filter(id.eq(uid))
+        .filter(external_id.eq(eid))
         .first::<User>(conn)
         .optional()?;
 
     Ok(user)
 }
 
-pub fn insert_new_user(
-    ext_id: &i64,
-    conn: &PgConnection,
-) -> Result<User, diesel::result::Error> {
+pub fn insert_new_user(ext_id: i64, conn: &PgConnection) -> Result<User, diesel::result::Error> {
     use crate::schema::users::dsl::*;
 
     let _id = Uuid::new_v4();
@@ -36,9 +44,7 @@ pub fn insert_new_user(
         created_at: Utc::now().to_owned(),
     };
 
-    diesel::insert_into(users)
-        .values(&new_user)
-        .execute(conn)?;
+    diesel::insert_into(users).values(&new_user).execute(conn)?;
 
     Ok(new_user)
 }

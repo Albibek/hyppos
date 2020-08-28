@@ -1,8 +1,8 @@
 use crate::github_types::{
-    Blob, Branch, BranchDetails, CommitDetails, DirectoryListing, DirectoryUrl, Repo,
+    Blob, Branch, BranchDetails, CommitDetails, DirectoryListing, DirectoryUrl, Repo, User,
 };
 
-use reqwest::header::{self, HeaderMap, HeaderValue, InvalidHeaderValue};
+use reqwest::header::{self, HeaderMap, HeaderValue};
 use serde::de::DeserializeOwned;
 use thiserror::Error;
 use url::Url;
@@ -26,6 +26,7 @@ pub enum Error {
     Base64Error(#[from] base64::DecodeError),
 }
 
+#[derive(Clone)]
 pub struct GithubClient {
     http: reqwest::Client,
     base_url: Url,
@@ -69,7 +70,7 @@ impl GithubClient {
     pub fn for_token<'a>(&'a self, token: &str) -> GithubClientForToken<'a> {
         GithubClientForToken {
             client: self,
-            token_header: format!("OAuth {}", token),
+            token_header: format!("token {}", token),
         }
     }
 }
@@ -129,5 +130,9 @@ impl GithubClientForToken<'_> {
         let blob: Blob = self.get(url).await?;
         // Why, GitHub, why?
         base64::decode(&blob.content.replace('\n', "")).map_err(Error::from)
+    }
+
+    pub async fn get_user(&self) -> Result<User, Error> {
+        self.get_relative("user").await
     }
 }

@@ -6,7 +6,9 @@ mod github_types;
 
 mod comments;
 mod models;
+mod projects;
 mod schema;
+mod users;
 
 #[macro_use]
 extern crate diesel;
@@ -22,20 +24,22 @@ use actix_session::{CookieSession, Session};
 use actix_cors::Cors;
 
 use crate::auth::AuthState;
+use crate::github::GithubClient;
 
-pub(crate) async fn index(session: Session) -> impl Responder {
-    HttpResponse::Ok().body(format!(
-        "Hello, {}",
-        session
-            .get("token")
-            .unwrap_or(None)
-            .unwrap_or("mr. anonymous".to_string())
-    ))
+pub(crate) async fn index(session: Session, state: web::Data<State>) -> impl Responder {
+    //let token: Option<String> = session.get("token").unwrap_or(None);
+
+    let login = session
+        .get::<String>("login")
+        .unwrap()
+        .unwrap_or("mr. anonymous".to_string());
+    HttpResponse::Ok().body(format!("Hello, {}", login))
 }
 
 #[derive(Clone)]
 struct State {
     auth: AuthState,
+    github: GithubClient,
     pool: Pool<ConnectionManager<PgConnection>>,
 }
 
@@ -48,9 +52,10 @@ impl State {
         let pool = Pool::builder()
             .build(manager)
             .expect("Failed to create pool.");
-
+        let gh_url = url::Url::parse("https://api.github.com").unwrap();
         Self {
             auth: auth::configure(),
+            github: GithubClient::with_baseurl(gh_url),
             pool,
         }
     }

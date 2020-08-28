@@ -19,7 +19,7 @@ pub fn find_project_by_id(
         .first::<Project>(conn)
         .optional()?;
 
-    Ok(user)
+    Ok(project)
 }
 
 pub fn insert_new_project(
@@ -33,7 +33,7 @@ pub fn insert_new_project(
 
     let new_project = Project {
         id: _id,
-        user_id: uid.to_owned,
+        user_id: uid.to_owned(),
         external_id: ext_id,
         created_at: Utc::now().to_owned(),
     };
@@ -42,5 +42,5 @@ pub fn insert_new_project(
         .values(&new_project)
         .execute(conn)?;
 
-    Ok(new_user)
+    Ok(new_project)
 }

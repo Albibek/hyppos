@@ -2,46 +2,48 @@ use chrono::Utc;
 use diesel::prelude::*;
 use uuid::Uuid;
 
-use crate::models;
+use actix_web::{web, Error as ActixWebError, HttpResponse, Responder};
+use serde::Serialize;
+
+use crate::models::{Comment, NewComment};
+use crate::State;
 
 pub fn find_comment_by_id(
     cid: uuid::Uuid,
     conn: &PgConnection,
-) -> Result<Option<models::Comment>, diesel::result::Error> {
-    //use crate::comments::schema::comments::dsl::*;
+) -> Result<Option<Comment>, diesel::result::Error> {
     use crate::schema::comments::dsl::*;
 
     let comment = comments
         .filter(id.eq(cid))
-        .first::<models::Comment>(conn)
+        .first::<Comment>(conn)
         .optional()?;
 
     Ok(comment)
 }
 
 pub fn insert_new_comment(
-    comment: &models::NewComment,
+    comment: &NewComment,
     conn: &PgConnection,
-) -> Result<models::Comment, diesel::result::Error> {
+) -> Result<Comment, diesel::result::Error> {
     use crate::schema::comments::dsl::*;
 
     let _id = Uuid::new_v4();
 
-    let new_comment = models::Comment {
+    let new_comment = Comment {
         id: _id,
         parent_id: match comment.parent_id {
             Some(i) => i.to_owned(),
             None => _id,
         },
-        message: comment.message.to_owned(),
-        user_id: comment.user_id,
-        project_id: comment.project_id,
-        hash: comment.hash.to_owned(),
-        file_id: comment.file_id,
+        user_id: comment.user_id.to_owned(),
+        project_id: comment.project_id.to_owned(),
+        commit_id: comment.commit_id.to_owned(),
+        file_id: comment.file_id.to_owned(),
         line_no: comment.line_no,
-        is_deleted: false,
-
+        message: comment.message.to_owned(),
         created_at: Utc::now().to_owned(),
+        is_deleted: false,
     };
 
     diesel::insert_into(comments)
@@ -49,4 +51,28 @@ pub fn insert_new_comment(
         .execute(conn)?;
 
     Ok(new_comment)
+}
+
+#[derive(Serialize)]
+struct InsertResponse {
+    status: String,
+}
+
+pub(crate) async fn insert_comment(
+    state: web::Data<State>,
+    new_comment: web::Json<NewComment>,
+) -> Result<HttpResponse, ActixWebError> {
+    let conn = state
+        .pool
+        .get()
+        .expect("couldn't get db connection from pool");
+    let resp = web::block(move || {
+        insert_new_comment(&new_comment, &conn).expect("inserting new comment");
+        Ok::<_, ()>(InsertResponse {
+            status: "ok".to_string(),
+        })
+    })
+    .await?;
+
+    Ok(HttpResponse::Ok().json(resp))
 }

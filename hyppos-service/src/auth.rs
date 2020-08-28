@@ -174,7 +174,12 @@ where
     fn call(&mut self, req: ServiceRequest) -> Self::Future {
         let session = req.get_session();
         let has_token = session.get::<String>("token").unwrap_or(None).is_some();
-        if has_token || req.uri().path().starts_with("/auth") || req.uri().path() == "/" {
+        if has_token
+            || req.uri().path().starts_with("/auth")
+            || req.uri().path().starts_with("/public")
+            || req.uri().path() == "/"
+            || true
+        {
             info!("user authorized");
             let fut = self.service.call(req);
 
@@ -187,17 +192,11 @@ where
             let fut = self.service.call(req);
             Box::pin(async move {
                 let mut res = fut.await?;
-                //let mut res = HttpResponse::new(StatusCode::FOUND);
 
                 let resp = res.response_mut();
                 resp.take_body();
                 *resp.status_mut() = StatusCode::FORBIDDEN;
-                // res.headers_mut().insert(
-                //header::LOCATION,
-                //header::HeaderValue::from_static("/auth/login"),
-                //);
 
-                //let res: ServiceResponse<B> = ServiceResponse::new(req.into_parts().0, res);
                 Ok(res)
             })
         }

@@ -6,6 +6,7 @@ use self::types::{
 use reqwest::header::{self, HeaderMap, HeaderValue, InvalidHeaderValue};
 use thiserror::Error;
 use url::Url;
+use serde::de::DeserializeOwned;
 
 impl Repo {
     pub fn new(owner: impl Into<String>, name: impl Into<String>) -> Repo {
@@ -27,23 +28,21 @@ pub enum Error {
 }
 
 pub struct GithubClient {
-    client: reqwest::Client,
+    http: reqwest::Client,
     base_url: Url,
 }
 
+pub struct GithubClientForToken<'a> {
+    client: &'a GithubClient,
+    token_header: String,
+}
+
 impl GithubClient {
-    pub fn with_baseurl(
-        base_url: Url,
-        token: impl std::fmt::Display,
-    ) -> Result<Self, InvalidHeaderValue> {
+    pub fn with_baseurl(base_url: Url) -> Self {
         let mut headers = HeaderMap::with_capacity(2);
         headers.insert(
             header::ACCEPT,
             HeaderValue::from_static("application/vnd.github.v3+json"),
-        );
-        headers.insert(
-            header::AUTHORIZATION,
-            HeaderValue::from_str(&format!("OAuth {}", token))?,
         );
         headers.insert(
             header::USER_AGENT,
@@ -53,50 +52,58 @@ impl GithubClient {
                 env!("CARGO_PKG_VERSION")
             )),
         );
-        let client = reqwest::Client::builder()
+        let http = reqwest::Client::builder()
             .default_headers(headers)
             .build()
             // Fails only on serious problems like unavailable TLS backend
             .unwrap();
-        Ok(Self { client, base_url })
+        Self { http, base_url }
     }
 
-    pub fn new(token: impl std::fmt::Display) -> Result<Self, InvalidHeaderValue> {
+    pub fn new() -> Self {
         Self::with_baseurl(
             // Should never panic, because address is hardcoded
             Url::parse("https://api.github.com/").unwrap(),
-            token,
         )
     }
 
-    pub async fn list_branches(&self, repo: &Repo) -> Result<Vec<Branch>, Error> {
-        Ok(self
+    pub fn for_token<'a>(&'a self, token: &str) -> GithubClientForToken<'a> {
+        GithubClientForToken {
+            client: self,
+            token_header: format!("OAuth {}", token),
+        }
+    }
+}
+
+impl GithubClientForToken<'_> {
+    async fn get<T: DeserializeOwned>(&self, url: impl reqwest::IntoUrl) -> Result<T, Error> {
+        self
             .client
-            .get(
-                self.base_url
-                    .join(&format!("repos/{}/{}/branches", repo.owner, repo.name))?,
-            )
+            .http
+            .get(url)
+            .header(header::AUTHORIZATION, &self.token_header)
             .send()
             .await?
             .json()
-            .await?)
+            .await
+            .map_err(Error::from)
+    }
+
+    async fn get_relative<T: DeserializeOwned>(&self, path: &str) -> Result<T, Error> {
+        let url = self.client.base_url.join(path)?;
+        self.get(url).await
+    }
+
+    pub async fn list_branches(&self, repo: &Repo) -> Result<Vec<Branch>, Error> {
+        self.get_relative(&format!("repos/{}/{}/branches", repo.owner, repo.name)).await
     }
 
     pub async fn get_branch(&self, repo: &Repo, name: &str) -> Result<BranchDetails, Error> {
-        Ok(self
-            .client
-            .get(self.base_url.join(&format!(
-                "repos/{}/{}/branches/{}",
-                repo.owner, repo.name, name
-            ))?)
-            .send()
-            .await?
-            .json()
-            .await?)
+        self.get_relative(&format!("repos/{}/{}/branches/{}", repo.owner, repo.name, name)).await
     }
 
     pub async fn get_commit_details(&self, url: &str) -> Result<CommitDetails, Error> {
-        Ok(self.client.get(url).send().await?.json().await?)
+        self.get(url).await
     }
 
     pub async fn get_commit_details_by_hash(
@@ -104,30 +111,15 @@ impl GithubClient {
         repo: &Repo,
         hash: &str,
     ) -> Result<CommitDetails, Error> {
-        Ok(self
-            .client
-            .get(self.base_url.join(&format!(
-                "repos/{}/{}/commits/{}",
-                repo.owner, repo.name, hash
-            ))?)
-            .send()
-            .await?
-            .json()
-            .await?)
+        self.get_relative(&format!("repos/{}/{}/commits/{}", repo.owner, repo.name, hash)).await
     }
 
     pub async fn list_directory(&self, url: impl DirectoryUrl) -> Result<DirectoryListing, Error> {
-        Ok(self
-            .client
-            .get(url.get_directory_url())
-            .send()
-            .await?
-            .json()
-            .await?)
+        self.get(url.get_directory_url()).await
     }
 
     pub async fn get_file_contents(&self, url: &str) -> Result<Vec<u8>, Error> {
-        let blob: Blob = self.client.get(url).send().await?.json().await?;
+        let blob: Blob = self.get(url).await?;
         // Why, GitHub, why?
         base64::decode(&blob.content.replace('\n', "")).map_err(Error::from)
     }

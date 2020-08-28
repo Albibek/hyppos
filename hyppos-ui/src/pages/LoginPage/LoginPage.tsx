@@ -6,6 +6,7 @@ import { GithubOutlined } from "@ant-design/icons/lib";
 import { currentHistory } from "../../history";
 import { useLocation } from "react-router";
 import { config } from "../../config";
+import { api } from "../../api";
 
 export const LoginPage = React.memo(
   function LoginPage() {
@@ -17,6 +18,10 @@ export const LoginPage = React.memo(
 
       window.location.replace(`${config.gatewayUrl}/auth/login`)
     }
+
+    api.logout().then(res => {
+      console.log(res)
+    })
 
     return (
       <Layout className={classes.root}>

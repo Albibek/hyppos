@@ -1,0 +1,122 @@
+@import '~antd/dist/antd.compact.less';
+
+// -- borders --
+@border-color-base: #cdcdcd;
+@border-color-split: #cdcdcd;
+
+// -- main colors --
+@blue-base: #00689c;
+@green-base: #006f4c;
+@red-base: #af0000;
+@orange-base: #c16f00;
+
+// -- sider --
+@menu-collapsed-width: 50px;
+
+.ant-layout-sider-collapsed {
+  max-width: @menu-collapsed-width !important;
+  width: @menu-collapsed-width !important;
+  min-width: @menu-collapsed-width !important;
+}
+
+// -- cards --
+.ant-card-head {
+  min-height: 27px;
+}
+
+.ant-card-type-inner .ant-card-head-title, .ant-card-type-inner .ant-card-extra {
+  padding: 5px 0;
+}
+
+// -- descriptions --
+.ant-descriptions-bordered .ant-descriptions-item-label {
+  background-color: @background-color-light;
+  //font-weight: 500;
+}
+
+// --- table ---
+.ant-table {
+  th {
+    &.ant-table-column-has-sorters {
+      user-select: none;
+    }
+  }
+
+  td {
+    vertical-align: middle;
+
+    &.ant-table-column-sort {
+      background: inherit;
+    }
+  }
+
+}
+
+.ant-table-small {
+  .ant-table-column-sorters {
+    padding-left: 0 !important;
+  }
+
+  th:first-child {
+    padding-left: 12px !important;
+  }
+
+  td:first-child {
+    padding-left: 8px !important;
+  }
+
+}
+
+.ant-table-tbody > tr:last-child > td {
+  border-bottom: 0;
+}
+
+
+// --- form ---
+.ant-form-item-explain {
+  margin-bottom: 16px;
+}
+
+// -- sidebar --
+.ant-menu-inline-collapsed-tooltip {
+  display: none;
+}
+
+// -- tabs --
+.ant-page-header-footer .ant-tabs .ant-tabs-tab {
+  font-size: 12px;
+  padding: 8px 0;
+  user-select: none;
+}
+
+
+// -- modal --
+.ant-modal-header {
+  background-color: @background-color-light;
+}
+
+// -- misc --
+// небольшой хак для улучшения визуального отображения scrollable контейнеров. Добавляет тени при скролле сверху и снизу
+// https://stackoverflow.com/a/44794221
+.ant-list-bordered, .ant-table-body {
+  background: linear-gradient(white 30%, rgba(255, 255, 255, 0)), linear-gradient(rgba(255, 255, 255, 0), white 70%) 0 100%,
+  radial-gradient(farthest-side at 50% 0, rgba(0, 0, 0, .2), rgba(0, 0, 0, 0)), radial-gradient(farthest-side at 50% 100%, rgba(0, 0, 0, .2), rgba(0, 0, 0, 0)) 0 100%;
+  background-repeat: no-repeat;
+  background-size: 100% 40px, 100% 40px, 100% 14px, 100% 14px;
+
+  /* Opera doesn't support this in the shorthand */
+  background-attachment: local, local, scroll, scroll;
+}
+
+// -- bugs --
+// WARN! Правка бага прогресс бара
+.ant-progress-show-info .ant-progress-outer {
+  margin-right: calc(-2.8em - 8px);
+  padding-right: calc(2.8em + 8px);
+}
+
+// WARN! Правка вероятного бага стилей при использовании less файла вместо css
+.ant-page-header-heading-extra > * {
+  margin-left: 12px !important;
+}
+

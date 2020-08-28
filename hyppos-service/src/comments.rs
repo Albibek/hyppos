@@ -8,18 +8,18 @@ use serde::Serialize;
 use crate::models::{Comment, NewComment};
 use crate::State;
 
-pub fn find_comment_by_id(
-    cid: uuid::Uuid,
+pub fn find_comments_by_user_id(
+    uid: uuid::Uuid,
     conn: &PgConnection,
-) -> Result<Option<Comment>, diesel::result::Error> {
+) -> Result<Option<Vec<Comment>>, diesel::result::Error> {
     use crate::schema::comments::dsl::*;
 
-    let comment = comments
-        .filter(id.eq(cid))
-        .first::<Comment>(conn)
+    let all_comments = comments
+        .filter(user_id.eq(uid))
+        .load::<Comment>(conn)
         .optional()?;
 
-    Ok(comment)
+    Ok(all_comments)
 }
 
 pub fn insert_new_comment(

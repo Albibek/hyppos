@@ -2,10 +2,12 @@ import React from "react";
 import ReactDOM from "react-dom";
 import * as serviceWorker from "./serviceWorker";
 import { Redirect, Route, Router, Switch } from "react-router";
-import { createBrowserHistory } from "history"
+import { currentHistory } from "./history"
+
 // styles
 import "./global.scss"
 import "./global.theme.less"
+
 // pages
 import { LoginPage } from "./pages/LoginPage/LoginPage";
 import { ReviewPage } from "./pages/ReviewPage/ReviewPage";
@@ -15,25 +17,23 @@ import { Layout } from "./pages/Layout";
 import { MainPage } from "./pages/MainPage/MainPage";
 
 
-const history = createBrowserHistory()
-
 const App = React.memo(
   function App() {
     return (
-      <Router history={history}>
+      <Router history={currentHistory}>
         <Switch>
-          <Route path="/login" exact component={LoginPage}/>
-          <Route path="/404" exact component={NotFoundPage}/>
+          <Route path="/login" exact={true} component={LoginPage}/>
+          <Route path="/404" exact={true} component={NotFoundPage}/>
 
           <Layout>
             <Switch>
-              <Route path="/" exact component={MainPage}/>
-              <Route path="/projects" exact component={ProjectsPage}/>
-              <Route path="/review/:projectName" exact component={ReviewPage}/>
+              <Route path="/" exact={true} component={MainPage}/>
+              <Route path="/projects" exact={true} component={ProjectsPage}/>
+              <Route path="/review/:projectName" exact={true} component={ReviewPage}/>
+
+              <Redirect to="/404"/>
             </Switch>
           </Layout>
-
-          <Redirect to="/404"/>
         </Switch>
       </Router>
     )

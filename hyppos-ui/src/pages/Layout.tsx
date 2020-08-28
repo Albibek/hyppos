@@ -1,25 +1,41 @@
 import React from "react";
-import { Layout as AntLayout, Menu } from "antd";
+import { Col, Divider, Layout as AntLayout, Menu, Row } from "antd";
+import classes from "./classes.module.scss";
+import { ReactComponent as LogoIcon } from "../assets/logo.svg"
+import { currentHistory } from "../history";
 
+const { Header, Content, Footer } = AntLayout
 
 export const Layout: React.FC = React.memo(
   function LoginPage({ children }) {
+    const currentPath = currentHistory.location.pathname
+
     return (
-      <AntLayout>
-        <AntLayout.Header style={{ position: "fixed", zIndex: 1, width: "100%" }}>
-          <div className="logo"/>
-          <Menu theme="dark" mode="horizontal" defaultSelectedKeys={["2"]}>
-            <Menu.Item key="1">nav 1</Menu.Item>
-            <Menu.Item key="2">nav 2</Menu.Item>
-            <Menu.Item key="3">nav 3</Menu.Item>
-          </Menu>
-        </AntLayout.Header>
-        <AntLayout.Content style={{ padding: "0 50px", marginTop: 64 }}>
+      <AntLayout className={classes.root}>
+        <Header className={classes.header}>
+          <Row gutter={16}>
+            <Col style={{ display: "flex", alignItems: "center" }}>
+              <LogoIcon style={{ width: 25, height: 25, fill: "white" }}/>
+            </Col>
+            <Col flex={1}>
+              <Menu theme="dark" mode="horizontal" defaultSelectedKeys={[currentPath]}>
+                <Menu.Item key="/" onClick={() => currentHistory.push("/")}>Главная</Menu.Item>
+                <Menu.Item key="/projects" onClick={() => currentHistory.push("/projects")}>Проекты</Menu.Item>
+              </Menu>
+            </Col>
+          </Row>
+        </Header>
+
+        <Content className={classes.content}>
           <div className="site-layout-background" style={{ padding: 24, minHeight: 380 }}>
             {children}
           </div>
-        </AntLayout.Content>
-        <AntLayout.Footer style={{ textAlign: "center" }}>Ant Design ©2018 Created by Ant UED</AntLayout.Footer>
+        </Content>
+
+        <Footer style={{ textAlign: "center" }}>
+          {/* eslint-disable-next-line react/no-unescaped-entities */}
+          AvitoHack: Погружение ©2020, создано командой "Альтернативные Гиппопотамы"
+        </Footer>
       </AntLayout>
     )
   }

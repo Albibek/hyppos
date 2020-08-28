@@ -1,0 +1,15 @@
+.root {
+  min-height: 400px;
+  height: 100vh;
+
+  display: flex;
+  flex-direction: column;
+
+  .header {
+    height: 40px;
+  }
+
+  .content {
+
+  }
+}

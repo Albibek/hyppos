@@ -1,12 +1,11 @@
-pub mod types;
-use self::types::{
+use crate::github_types::{
     Blob, Branch, BranchDetails, CommitDetails, DirectoryListing, DirectoryUrl, Repo,
 };
 
 use reqwest::header::{self, HeaderMap, HeaderValue, InvalidHeaderValue};
+use serde::de::DeserializeOwned;
 use thiserror::Error;
 use url::Url;
-use serde::de::DeserializeOwned;
 
 impl Repo {
     pub fn new(owner: impl Into<String>, name: impl Into<String>) -> Repo {
@@ -77,8 +76,7 @@ impl GithubClient {
 
 impl GithubClientForToken<'_> {
     async fn get<T: DeserializeOwned>(&self, url: impl reqwest::IntoUrl) -> Result<T, Error> {
-        self
-            .client
+        self.client
             .http
             .get(url)
             .header(header::AUTHORIZATION, &self.token_header)
@@ -95,11 +93,16 @@ impl GithubClientForToken<'_> {
     }
 
     pub async fn list_branches(&self, repo: &Repo) -> Result<Vec<Branch>, Error> {
-        self.get_relative(&format!("repos/{}/{}/branches", repo.owner, repo.name)).await
+        self.get_relative(&format!("repos/{}/{}/branches", repo.owner, repo.name))
+            .await
     }
 
     pub async fn get_branch(&self, repo: &Repo, name: &str) -> Result<BranchDetails, Error> {
-        self.get_relative(&format!("repos/{}/{}/branches/{}", repo.owner, repo.name, name)).await
+        self.get_relative(&format!(
+            "repos/{}/{}/branches/{}",
+            repo.owner, repo.name, name
+        ))
+        .await
     }
 
     pub async fn get_commit_details(&self, url: &str) -> Result<CommitDetails, Error> {
@@ -111,7 +114,11 @@ impl GithubClientForToken<'_> {
         repo: &Repo,
         hash: &str,
     ) -> Result<CommitDetails, Error> {
-        self.get_relative(&format!("repos/{}/{}/commits/{}", repo.owner, repo.name, hash)).await
+        self.get_relative(&format!(
+            "repos/{}/{}/commits/{}",
+            repo.owner, repo.name, hash
+        ))
+        .await
     }
 
     pub async fn list_directory(&self, url: impl DirectoryUrl) -> Result<DirectoryListing, Error> {

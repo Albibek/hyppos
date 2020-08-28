@@ -16,8 +16,8 @@ use log::info;
 use oauth2::basic::BasicClient;
 use oauth2::reqwest::http_client;
 use oauth2::{
-    AuthUrl, AuthorizationCode, ClientId, ClientSecret, CsrfToken, PkceCodeChallenge,
-    RedirectUrl, Scope, TokenResponse, TokenUrl,
+    AuthUrl, AuthorizationCode, ClientId, ClientSecret, CsrfToken, PkceCodeChallenge, RedirectUrl,
+    Scope, TokenResponse, TokenUrl,
 };
 
 use serde::Deserialize;
@@ -199,11 +199,11 @@ where
 
                 let resp = res.response_mut();
                 resp.take_body();
-                *resp.status_mut() = StatusCode::FOUND;
-                res.headers_mut().insert(
-                    header::LOCATION,
-                    header::HeaderValue::from_static("/auth/login"),
-                );
+                *resp.status_mut() = StatusCode::FORBIDDEN;
+                // res.headers_mut().insert(
+                //header::LOCATION,
+                //header::HeaderValue::from_static("/auth/login"),
+                //);
 
                 //let res: ServiceResponse<B> = ServiceResponse::new(req.into_parts().0, res);
                 Ok(res)

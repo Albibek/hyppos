@@ -1,8 +1,7 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-use crate::comments::schema::comments;
-
+use crate::schema::comments;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Queryable, Insertable)]
 pub struct Comment {
@@ -17,7 +16,6 @@ pub struct Comment {
     pub created_at: DateTime<Utc>,
     pub is_deleted: bool,
 }
-
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NewComment {

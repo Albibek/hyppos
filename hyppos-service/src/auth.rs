@@ -151,7 +151,7 @@ pub(crate) async fn callback(
         .header(
             "location",
             format!(
-                "http://127.0.0.1:3000/oauthCallback?userId={}&userLogin={}",
+                "http://127.0.0.1:8000/oauthCallback?userId={}&userLogin={}",
                 user_duplicate.id, user_duplicate.login
             ),
         )

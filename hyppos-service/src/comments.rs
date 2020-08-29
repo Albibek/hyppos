@@ -7,7 +7,7 @@ use actix_web::{web, Error as ActixWebError, HttpResponse, Responder};
 use diesel::result::Error as DieselError;
 use serde::{Deserialize, Serialize};
 
-use crate::models::{Comment, NewComment};
+use crate::models::{Comment, NewComment, NewCommentWithID};
 use crate::State;
 use crate::{github_types, projects, users};
 
@@ -40,7 +40,7 @@ pub fn find_comments_by_file_id(
 }
 
 pub fn insert_new_comment(
-    comment: &NewComment,
+    comment: &NewCommentWithID,
     conn: &PgConnection,
 ) -> Result<Comment, diesel::result::Error> {
     use crate::schema::comments::dsl::*;
@@ -121,6 +121,17 @@ pub(crate) async fn insert_comment(
         if db_user.is_none() {
             users::insert_new_user(user.id, &conn)?;
         }
+
+        let db_user = users::find_user_by_ext_id(user.id, &conn)?.unwrap();
+        let new_comment = NewCommentWithID {
+            user_id: db_user.id,
+            parent_id: new_comment.parent_id,
+            project_id: new_comment.project_id,
+            commit_id: new_comment.commit_id.to_owned(),
+            file_id: new_comment.file_id.to_owned(),
+            line_no: new_comment.line_no,
+            message: new_comment.message.to_owned(),
+        };
         insert_new_comment(&new_comment, &conn)?;
         Ok::<_, DieselError>(InsertResponse {
             status: "ok".to_string(),

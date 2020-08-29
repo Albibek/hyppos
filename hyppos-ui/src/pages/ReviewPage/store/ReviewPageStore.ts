@@ -1,6 +1,6 @@
-import { FetchStore } from "../../../store/Base/Base";
+import { FetchStore, MutationStore } from "../../../store/Base/Base";
 import { action, observable, runInAction } from "mobx";
-import { api, TreeItem } from "../../../api";
+import { api, NewComment, TreeItem } from "../../../api";
 import { makeStoreHook } from "../../../helpers/mobx";
 import { forkJoin } from "rxjs";
 
@@ -22,6 +22,14 @@ function findNode(hash: string, tree: TreeItem[]): TreeItem | undefined {
   }
 
   return
+}
+
+class InsertCommentStore extends MutationStore<any> {
+  @action.bound insertComment(newComment: NewComment) {
+    this.mutateResource(
+      api.insertComment(newComment)
+    )
+  }
 }
 
 class RootContentStore extends FetchStore {
@@ -87,7 +95,7 @@ class FileContentStore extends FetchStore {
         (result) => {
           runInAction(() => {
             // @ts-ignore
-            this.data = { name: fileName, src: result.$src.data, comments: result.$comments.data }
+            this.data = { name: fileName, src: result.$src.data, comments: [] } // result.$comments.data
             this.state = "done"
           })
         },
@@ -101,12 +109,14 @@ class FileContentStore extends FetchStore {
 export class ReviewPageStore extends FetchStore {
   rootContent: RootContentStore
   fileContent: FileContentStore
+  insertCommentStore: InsertCommentStore
 
   constructor() {
     super();
 
     this.rootContent = new RootContentStore()
     this.fileContent = new FileContentStore()
+    this.insertCommentStore = new InsertCommentStore()
   }
 }
 

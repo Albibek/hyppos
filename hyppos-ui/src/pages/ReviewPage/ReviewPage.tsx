@@ -114,7 +114,13 @@ interface ReviewPageProps {
 export const ReviewPage = observer(
   function ReviewPage({ projectName, projectId }: ReviewPageProps) {
     const { authStore: { userName } } = useRootStore()
-    const { rootContent, fileContent } = useReviewPageStore()
+    const { rootContent, fileContent, insertCommentStore } = useReviewPageStore()
+
+    // const insertComment = React.useCallback((lineNo: number, message: string) => {
+    //   insertCommentStore.insertComment({
+    //     projectId, lineNo, message, fileId
+    //   })
+    // }, [insertCommentStore])
 
     React.useEffect(() => {
       rootContent.fetchRoot(projectName, "master")
@@ -157,7 +163,7 @@ export const ReviewPage = observer(
                 className={classes.codemirror}
                 value={fileContent.data?.src || ""}
                 options={makeOptions(fileContent.data?.name || "")}
-                // editorDidMount={editorDidMountHandler}
+                editorDidMount={editorDidMountHandler}
                 onGutterClick={(editor, lineNumber) =>
                   makeLineWidget(
                     editor,

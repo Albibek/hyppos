@@ -36,8 +36,8 @@ function getRepoFileComments(fileHash: string) {
   return from(gatewayClient.get<string[]>("/comments", { params: { file_id: fileHash } }))
 }
 
-interface NewComment {
-  lineNo: string
+export interface NewComment {
+  lineNo: number
   commitId: string
   fileId: string
   projectId: string

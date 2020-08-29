@@ -1,6 +1,6 @@
 import React from "react";
 import classes from "./classes.module.scss";
-import { Button, Col, Layout as AntLayout, Menu, Row, Space } from "antd";
+import { Button, Col, Layout as AntLayout, Menu, Row } from "antd";
 import { ReactComponent as LogoIcon } from "../assets/logo.svg"
 import { currentHistory } from "../history";
 import { ReactComponent as AvitoLogoIcon } from "../assets/avitoLogo.svg";

@@ -21,9 +21,9 @@ export const LoginPage = observer(
       window.location.replace(`${config.gatewayUrl}/auth/login`)
     }
 
-    const loginSuccess = new URLSearchParams(location.search).get("success")
+    const userId = new URLSearchParams(location.search).get("userId")
 
-    if (loginSuccess) {
+    if (location.pathname === "/oauthCallback" && userId) {
       authStore.login()
 
       return <Redirect to="/"/>

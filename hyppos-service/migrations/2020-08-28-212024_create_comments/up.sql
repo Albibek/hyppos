@@ -4,7 +4,7 @@ CREATE TABLE comments (
 
   user_id UUID NOT NULL REFERENCES users (id),
   project_id UUID NOT NULL REFERENCES projects (id),
-  commit_id TEXT NOT NULL,
+  commit_id TEXT,
   file_id TEXT NOT NULL,
   line_no BIGINT,
 

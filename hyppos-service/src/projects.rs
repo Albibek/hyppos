@@ -140,17 +140,16 @@ pub(crate) async fn get_projects(
     };
 
     let resp = web::block(move || {
-        let db_user = users::find_user_by_ext_id(user.id, &conn)
-            .expect("finding user by ID")
-            .unwrap();
-        let projects = find_projects_by_user_id(db_user.id, &conn)
-            .expect("select for projects")
-            .unwrap();
+        let db_user = users::find_user_by_ext_id(user.id, &conn).expect("finding user by ID");
+        //  .unwrap();
+        //let projects = find_projects_by_user_id(db_user.id, &conn)
+        //.expect("select for projects")
+        //.unwrap();
 
-        //let projects: Option<Vec<Project>> = match db_user {
-        //None => Some(vec![]),
-        //Some(u) => find_projects_by_user_id(u.id, &conn).expect("select for projects"),
-        //};
+        let projects: Option<Vec<Project>> = match db_user {
+            None => Some(vec![]),
+            Some(u) => find_projects_by_user_id(u.id, &conn).expect("select for projects"),
+        };
 
         Ok::<_, DieselError>(projects)
     })

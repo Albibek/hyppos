@@ -1,4 +1,5 @@
 mod auth;
+mod gh_proxy;
 #[allow(dead_code)]
 mod github;
 #[allow(dead_code)]
@@ -91,6 +92,11 @@ async fn main() -> std::io::Result<()> {
             .route("/favicon.ico", web::get().to(index))
             .route("/", web::get().to(index))
             .route("/comments", web::get().to(comments::get_comments))
+            .route("/gh/repos", web::get().to(gh_proxy::get_repos))
+            .route("/gh/repos/{name}", web::get().to(gh_proxy::list_repo_branches))
+            .route("/gh/repos/{name}/branch/{branch}", web::get().to(gh_proxy::list_repo_contents))
+            .route("/gh/repos/{name}/dirs/{hash}", web::get().to(gh_proxy::list_directory))
+            .route("/gh/repos/{name}/files/{hash}", web::get().to(gh_proxy::get_file))
             .service(
                 // this must be at the end of all routes
                 web::scope("/")

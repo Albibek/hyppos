@@ -13,7 +13,7 @@ pub struct User {
     pub login: String,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct RepoDetails {
     pub name: String,
     pub owner: User,
@@ -25,13 +25,13 @@ pub struct RepoDetails {
     pub updated_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Commit {
     pub sha: String,
     pub url: String,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Branch {
     pub name: String,
     pub commit: Commit,
@@ -56,17 +56,17 @@ pub struct CommitDetails {
 #[derive(Debug, Clone, Deserialize)]
 pub struct BranchDetails {
     pub name: String,
-    pub commit: CommitInfo,
+    pub commit: CommitDetails,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Directory {
     pub path: String,
     pub sha: String,
     pub url: String,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct File {
     pub path: String,
     pub sha: String,
@@ -74,24 +74,24 @@ pub struct File {
     pub url: String,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(tag = "type")]
 pub enum DirEntry {
-    #[serde(rename = "tree")]
+    #[serde(alias = "tree")]
     Dir {
         #[serde(flatten)]
         dir: Directory,
     },
-    #[serde(rename = "blob")]
+    #[serde(alias = "blob")]
     File {
         #[serde(flatten)]
         file: File,
     },
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct DirectoryListing {
-    #[serde(rename = "tree")]
+    #[serde(alias = "tree")]
     pub items: Vec<DirEntry>,
 }
 
@@ -122,6 +122,13 @@ impl DirectoryUrl for &CommitDetails {
     #[inline]
     fn get_directory_url(&self) -> &str {
         &self.commit.tree.url
+    }
+}
+
+impl DirectoryUrl for &BranchDetails {
+    #[inline]
+    fn get_directory_url(&self) -> &str {
+        &self.commit.commit.tree.url
     }
 }
 

@@ -27,12 +27,12 @@ use crate::auth::AuthState;
 use crate::github::GithubClient;
 
 pub(crate) async fn index(session: Session, state: web::Data<State>) -> impl Responder {
-    //let token: Option<String> = session.get("token").unwrap_or(None);
-    let login = session
-        .get::<String>("login")
-        .unwrap()
-        .unwrap_or("mr. anonymous".to_string());
-    HttpResponse::Ok().body(format!("Hello, {}", login))
+    let user = session.get::<github_types::User>("user").unwrap();
+    if let Some(user) = user {
+        HttpResponse::Ok().body(format!("Hello, {}", user.login))
+    } else {
+        HttpResponse::Ok().body("Hello, mr. anonymous")
+    }
 }
 
 #[derive(Clone)]

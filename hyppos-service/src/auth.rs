@@ -95,6 +95,7 @@ pub(crate) fn login(data: web::Data<State>) -> HttpResponse {
 
 pub(crate) fn logout(session: Session) -> HttpResponse {
     session.remove("token");
+    session.remove("user");
     HttpResponse::Found()
         .header(header::LOCATION, "/".to_string())
         .finish()
@@ -125,12 +126,7 @@ pub(crate) async fn callback(
 
     let token = token.access_token().secret();
     info!("access token: {:?}", token);
-    session
-        .set(
-            "token",
-            serde_json::to_string(token).expect("serializing token"),
-        )
-        .expect("setting session field");
+    session.set("token", token).expect("setting session field");
 
     let user: github_types::User = state.github.for_token(token).get_user().await.unwrap();
     session.set("user", user).expect("setting user data");

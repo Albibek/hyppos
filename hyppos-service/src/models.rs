@@ -18,6 +18,12 @@ pub struct Project {
     pub created_at: DateTime<Utc>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NewProject {
+    pub user_id: uuid::Uuid,
+    pub external_id: i64,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, Queryable, Insertable)]
 pub struct Comment {
     pub id: uuid::Uuid,

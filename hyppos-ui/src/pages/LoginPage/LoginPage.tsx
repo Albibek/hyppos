@@ -28,7 +28,7 @@ export const LoginPage = observer(
     if (location.pathname === "/oauthCallback" && userName && userId) {
       authStore.login(userId, userName)
 
-      // api.insertProject({ externalId: 290972976 })
+      api.insertProject({ externalId: 290972976 })
 
       return <Redirect to="/"/>
     }

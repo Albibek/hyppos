@@ -68,7 +68,7 @@ function makeLineWidget(editor: Editor, line: number, widget: ((reset: () => voi
 
   const instance = editor.addLineWidget(line, el, { coverGutter: true, handleMouseEvents: false })
 
-  ReactDOM.render(widget(() =>{
+  ReactDOM.render(widget(() => {
     instance.clear()
     ReactDOM.unmountComponentAtNode(el)
   }), el)
@@ -107,21 +107,22 @@ function toComponentTreeDataStructure(items: TreeItem[]) {
 }
 
 interface ReviewPageProps {
+  projectName: string
   projectId: string
 }
 
 export const ReviewPage = observer(
-  function ReviewPage() {
+  function ReviewPage({ projectName, projectId }: ReviewPageProps) {
     const { authStore: { userName } } = useRootStore()
     const { rootContent, fileContent } = useReviewPageStore()
 
     React.useEffect(() => {
-      rootContent.fetchRoot("tech-tasks", "master")
+      rootContent.fetchRoot(projectName, "master")
 
       return () => {
         rootContent.clear()
       }
-    }, [rootContent])
+    }, [projectName, rootContent])
 
     return (
       <div className={classes.root}>
@@ -137,8 +138,8 @@ export const ReviewPage = observer(
                   expandAction={"doubleClick"}
                   onSelect={(keys, node) => {
                     !node.node.isLeaf ?
-                      rootContent.fetchChild("tech-tasks", node.node.key.toString())
-                      : fileContent.fetchFileContent("tech-tasks", node.node.key.toString(), node.node.title?.toString() || "")
+                      rootContent.fetchChild(projectName, node.node.key.toString())
+                      : fileContent.fetchFileContent(projectName, node.node.key.toString(), node.node.title?.toString() || "")
                   }}
                   treeData={toComponentTreeDataStructure(rootContent.data)}
                 />

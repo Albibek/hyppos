@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/camelcase */
 import { gatewayClient } from "./client";
 import { from } from "rxjs";
+import { map } from "rxjs/operators";
 
 function logout() {
   return from(gatewayClient.get("/auth/logout"))
@@ -53,13 +54,41 @@ function insertComment(newComment: NewComment) {
   }))
 }
 
+export interface Project {
+  id: string
+  name: string
+  externalId: string
+  userId: string
+  createdAt: Date
+}
+
+
+function getProjects() {
+  return from(gatewayClient.get<any>("/projects")).pipe(
+    map(res => res.data.map((it: any) => ({
+      id: it.id,
+      name: it.name,
+      externalId: it.external_id,
+      userId: it.user_id,
+      createdAt: new Date(it.created_at)
+    })) as Project[])
+  )
+}
 
 function insertProject(newProject: { externalId: number }) {
-  return from(gatewayClient.post<string[]>("/projects", {
+  return from(gatewayClient.post("/projects", {
     external_id: newProject.externalId,
   }))
 }
 
 export const api = {
-  logout, getMyRepos, getRepoRoot, getRepoDirContent, getRepoFileContent, getRepoFileComments, insertComment, insertProject
+  logout,
+  getMyRepos,
+  getRepoRoot,
+  getProjects,
+  getRepoDirContent,
+  getRepoFileContent,
+  getRepoFileComments,
+  insertComment,
+  insertProject
 }

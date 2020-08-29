@@ -38,7 +38,11 @@ const App = observer(
                   <>
                     <Route path="/" exact={true} component={MainPage}/>
                     <Route path="/projects" exact={true} component={ProjectsPage}/>
-                    <Route path="/projects/:projectName/review" exact={true} component={ReviewPage}/>
+                    <Route path="/projects/:projectName/review" exact={true} component={(props: any) => {
+                      const [projectName, projectId] = props.match.params.projectName.split("+")
+
+                      return <ReviewPage projectId={projectId} projectName={projectName}/>
+                    }}/>
                   </>
                 ) : (
                   <Redirect to="/login"/>

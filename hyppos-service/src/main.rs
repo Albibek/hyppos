@@ -90,7 +90,8 @@ async fn main() -> std::io::Result<()> {
                 Cors::new()
                     .allowed_origin("http://127.0.0.1:3000")
                     .allowed_methods(vec!["GET", "POST", "OPTIONS"])
-                    //.allowed_headers(vec![http::header::AUTHORIZATION, http::header::ACCEPT])
+                    .supports_credentials()
+                    // .allowed_headers(vec![http::header::AUTHORIZATION, http::header::ACCEPT])
                     //.allowed_header(http::header::CONTENT_TYPE)
                     .max_age(3600)
                     .finish(),

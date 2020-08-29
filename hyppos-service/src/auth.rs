@@ -45,9 +45,9 @@ pub(crate) fn configure() -> AuthState {
         AuthUrl::new(GITHUB_AUTH_URL.to_string()).expect("good auth url"),
         Some(TokenUrl::new(GITHUB_TOKEN_URL.to_string()).expect("good token URL")),
     )
-    .set_redirect_url(
-        RedirectUrl::new(AUTH_CALLBACK_URL.to_string()).expect("correct redirect URL"),
-    );
+        .set_redirect_url(
+            RedirectUrl::new(AUTH_CALLBACK_URL.to_string()).expect("correct redirect URL"),
+        );
     AuthState { client }
 }
 
@@ -64,9 +64,9 @@ pub(crate) async fn index(session: Session) -> impl Responder {
     </html>"#,
         user.unwrap_or(github_types::User {
             login: "anonymous".into(),
-            id: 0
+            id: 0,
         })
-        .login,
+            .login,
         link,
         link
     );
@@ -96,9 +96,8 @@ pub(crate) fn login(data: web::Data<State>) -> HttpResponse {
 pub(crate) fn logout(session: Session) -> HttpResponse {
     session.remove("token");
     session.remove("user");
-    HttpResponse::Found()
-        .header(header::LOCATION, "/".to_string())
-        .finish()
+
+    HttpResponse::Ok().body("success")
 }
 
 #[derive(Deserialize)]
@@ -169,10 +168,10 @@ pub(crate) async fn callback(
 pub(crate) struct AuthCheck;
 
 impl<S, B> Transform<S> for AuthCheck
-where
-    S: Service<Request = ServiceRequest, Response = ServiceResponse<B>, Error = ActixWebError>,
-    S::Future: 'static,
-    B: 'static,
+    where
+        S: Service<Request=ServiceRequest, Response=ServiceResponse<B>, Error=ActixWebError>,
+        S::Future: 'static,
+        B: 'static,
 {
     type Request = ServiceRequest;
     type Response = ServiceResponse<B>;
@@ -191,15 +190,15 @@ pub(crate) struct AuthCheckMiddleware<S> {
 }
 
 impl<S, B> Service for AuthCheckMiddleware<S>
-where
-    S: Service<Request = ServiceRequest, Response = ServiceResponse<B>, Error = ActixWebError>,
-    S::Future: 'static,
-    B: 'static,
+    where
+        S: Service<Request=ServiceRequest, Response=ServiceResponse<B>, Error=ActixWebError>,
+        S::Future: 'static,
+        B: 'static,
 {
     type Request = ServiceRequest;
     type Response = ServiceResponse<B>;
     type Error = ActixWebError;
-    type Future = Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>>>>;
+    type Future = Pin<Box<dyn Future<Output=Result<Self::Response, Self::Error>>>>;
 
     fn poll_ready(&mut self, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
         self.service.poll_ready(cx)

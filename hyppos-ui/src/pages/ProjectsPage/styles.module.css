@@ -6,7 +6,7 @@
 }
 
 .repo {
-  margin: 0 20px 20px;
+  margin: 0 20px 20px 0;
 }
 
 .review {
@@ -28,4 +28,9 @@
   border-radius: 12px;
   background-color: #722ed1;
   color: #fff;
+}
+
+.filter {
+  width: 100%;
+  margin-bottom: 30px;
 }

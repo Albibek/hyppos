@@ -9,8 +9,17 @@ function getMyRepos() {
   return from(gatewayClient.get("/gh/repos"))
 }
 
+export interface TreeItem {
+  type: "Dir" | "File"
+  path: string
+  sha: string
+  url: string
+  size: number
+  children?: TreeItem[]
+}
+
 function getRepoRoot(repoName: string, branchName: string) {
-  return from(gatewayClient.get(`/gh/repos/${repoName}/branch/${branchName}`))
+  return from(gatewayClient.get<{ items: TreeItem[] }>(`/gh/repos/${repoName}/branch/${branchName}`))
 }
 
 function getRepoDirContent(repoName: string, dirHash: string) {
@@ -23,7 +32,7 @@ function getRepoFileContent(repoName: string, fileHash: string) {
 
 function getRepoFileComments(fileHash: string) {
   // eslint-disable-next-line @typescript-eslint/camelcase
-  return from(gatewayClient.get<string>("/comments", { params: { file_id: fileHash } }))
+  return from(gatewayClient.get<string[]>("/comments", { params: { file_id: fileHash } }))
 }
 
 export const api = {

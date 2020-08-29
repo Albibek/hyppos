@@ -10,6 +10,9 @@ import "codemirror/theme/ayu-mirage.css";
 import "codemirror/mode/rust/rust";
 import { fixtureComments, fixtureFile } from "./ReviewPage.fixture";
 import { Comments } from "./components/Comments";
+import { observer } from "mobx-react-lite";
+import { useReviewPageStore } from "./store/ReviewPageStore";
+import { Card, Col, Row } from "antd";
 
 
 const defaultOptions: EditorConfiguration = {
@@ -32,18 +35,41 @@ function editorDidMountHandler(editor: Editor) {
   })
 }
 
+interface ReviewPageProps {
+  projectId: string
+}
 
-export const ReviewPage = React.memo(
+export const ReviewPage = observer(
   function ReviewPage() {
+    const { rootContent } = useReviewPageStore()
+
+    React.useEffect(() => {
+      rootContent.fetchRoot("tech-tasks", "master")
+
+      return () => {
+        rootContent.clear()
+      }
+    }, [rootContent])
+
     return (
       <div className={classes.root}>
-        <CodeMirror
-          className={classes.codemirror}
-          value={fixtureFile}
-          options={defaultOptions}
-          editorDidMount={editorDidMountHandler}
-          onBeforeChange={() => undefined}
-        />
+        <Row>
+          <Col span={9}>
+            <Card>
+
+            </Card>
+          </Col>
+
+          <Col span={15}>
+            <CodeMirror
+              className={classes.codemirror}
+              value={fixtureFile}
+              options={defaultOptions}
+              editorDidMount={editorDidMountHandler}
+              onBeforeChange={() => undefined}
+            />
+          </Col>
+        </Row>
       </div>
     )
   }

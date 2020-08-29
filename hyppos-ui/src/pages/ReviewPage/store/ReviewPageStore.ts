@@ -94,6 +94,7 @@ class FileContentStore extends FetchStore {
       .subscribe(
         (result) => {
           runInAction(() => {
+            console.log(result.$comments.data)
             // @ts-ignore
             this.data = { name: fileName, hash: fileHash, src: result.$src.data, comments: [] } // result.$comments.data
             this.state = "done"

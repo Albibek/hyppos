@@ -1,12 +1,16 @@
 import React from "react";
+import classes from "./classes.module.scss";
 import { EditorConfiguration } from "codemirror"
-import { Controlled as CodeMirror, ICodeMirror } from "react-codemirror2"
+import { Controlled as CodeMirror } from "react-codemirror2"
 
 import "codemirror/lib/codemirror.css"
+import "codemirror/theme/ayu-mirage.css";
+
 import "codemirror/mode/rust/rust";
 
 
 const defaultOptions: EditorConfiguration = {
+  theme: "ayu-mirage",
   lineNumbers: true,
   mode: {
     name: "rust"
@@ -54,16 +58,19 @@ pub fn insert_new_comment(
 
     Ok(new_comment)
 }
-  `
+`
 
 export const ReviewPage = React.memo(
   function ReviewPage() {
     return (
-      <CodeMirror
-        value={someValue}
-        options={defaultOptions}
-        onBeforeChange={() => undefined}
-      />
+      <div className={classes.root}>
+        <CodeMirror
+          className={classes.codemirror}
+          value={someValue}
+          options={defaultOptions}
+          onBeforeChange={() => undefined}
+        />
+      </div>
     )
   }
 )

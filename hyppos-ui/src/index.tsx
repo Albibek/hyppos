@@ -3,6 +3,8 @@ import ReactDOM from "react-dom";
 import * as serviceWorker from "./serviceWorker";
 import { Redirect, Route, Router, Switch } from "react-router";
 import { currentHistory } from "./history"
+import { observer } from "mobx-react-lite";
+import { useRootStore } from "./store/RootStore";
 
 // styles
 import "./global.scss"
@@ -17,24 +19,36 @@ import { Layout } from "./pages/Layout";
 import { MainPage } from "./pages/MainPage/MainPage";
 
 
-const App = React.memo(
+const App = observer(
   function App() {
+    const { isAppLoading, authStore } = useRootStore()
+
     return (
       <Router history={currentHistory}>
-        <Switch>
-          <Route path="/login" exact={true} component={LoginPage}/>
-          <Route path="/404" exact={true} component={NotFoundPage}/>
+        {isAppLoading ? (
+          <span>приложение загружается...</span>
+        ) : (
+          <Switch>
+            <Route path="/login" exact={true} component={LoginPage}/>
+            <Route path="/404" exact={true} component={NotFoundPage}/>
 
-          <Layout>
-            <Switch>
-              <Route path="/" exact={true} component={MainPage}/>
-              <Route path="/projects" exact={true} component={ProjectsPage}/>
-              <Route path="/projects/:projectName/review" exact={true} component={ReviewPage}/>
+            <Layout>
+              <Switch>
+                {authStore.isLoggedIn ? (
+                  <>
+                    <Route path="/" exact={true} component={MainPage}/>
+                    <Route path="/projects" exact={true} component={ProjectsPage}/>
+                    <Route path="/projects/:projectName/review" exact={true} component={ReviewPage}/>
+                  </>
+                ) : (
+                  <Redirect to="/login"/>
+                )}
 
-              <Redirect to="/404"/>
-            </Switch>
-          </Layout>
-        </Switch>
+                <Redirect to="/404"/>
+              </Switch>
+            </Layout>
+          </Switch>
+        )}
       </Router>
     )
   }

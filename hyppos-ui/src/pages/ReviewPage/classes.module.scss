@@ -1,0 +1,12 @@
+.root {
+  height: 90%;
+
+  :global .CodeMirror {
+    height: auto;
+  }
+}
+
+.codemirror {
+  height: 100%;
+  overflow: scroll;
+}

@@ -13,10 +13,10 @@ const { Header, Content, Footer } = AntLayout
 
 export const Layout: React.FC = observer(
   function Layout({ children }) {
-    const { authStore: { isLoggedIn, logout } } = useRootStore()
+    const { authStore: { userName, logout } } = useRootStore()
     const currentPath = currentHistory.location.pathname
 
-    if (!isLoggedIn) {
+    if (!userName) {
       return <Redirect to="/login"/>
     }
 

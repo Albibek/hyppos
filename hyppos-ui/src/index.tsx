@@ -34,7 +34,7 @@ const App = observer(
 
             <Layout>
               <Switch>
-                {authStore.isLoggedIn ? (
+                {authStore.userName ? (
                   <>
                     <Route path="/" exact={true} component={MainPage}/>
                     <Route path="/projects" exact={true} component={ProjectsPage}/>

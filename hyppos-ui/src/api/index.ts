@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/camelcase */
 import { gatewayClient } from "./client";
 import { from } from "rxjs";
 
@@ -31,10 +32,37 @@ function getRepoFileContent(repoName: string, fileHash: string) {
 }
 
 function getRepoFileComments(fileHash: string) {
-  // eslint-disable-next-line @typescript-eslint/camelcase
   return from(gatewayClient.get<string[]>("/comments", { params: { file_id: fileHash } }))
 }
 
+interface NewComment {
+  lineNo: string
+  commitId: string
+  fileId: string
+  projectId: string
+  userId: string
+  message: string
+}
+
+function insertComment(newComment: NewComment) {
+  return from(gatewayClient.post<string[]>("/comments", {
+    line_no: newComment.lineNo,
+    commit_id: newComment.commitId,
+    file_id: newComment.fileId,
+    project_id: newComment.projectId,
+    user_id: newComment.userId,
+    message: newComment.message,
+  }))
+}
+
+
+function insertProject(newProject: { userId: number, externalId: number }) {
+  return from(gatewayClient.post<string[]>("/projects", {
+    user_id: newProject.userId,
+    external_id: newProject.externalId,
+  }))
+}
+
 export const api = {
-  logout, getMyRepos, getRepoRoot, getRepoDirContent, getRepoFileContent, getRepoFileComments
+  logout, getMyRepos, getRepoRoot, getRepoDirContent, getRepoFileContent, getRepoFileComments, insertComment, insertProject
 }

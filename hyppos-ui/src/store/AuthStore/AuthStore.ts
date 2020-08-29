@@ -5,10 +5,12 @@ import { message } from "antd";
 
 export class AuthStore {
   @observable loading = false
-  @persist @observable isLoggedIn: boolean | undefined
+  @persist @observable userId: string | undefined
+  @persist @observable userName: string | undefined
 
-  @action.bound login() {
-    this.isLoggedIn = true
+  @action.bound login(userId: string, userName: string) {
+    this.userId = userId
+    this.userName = userName
   }
 
   @action.bound logout() {
@@ -19,7 +21,8 @@ export class AuthStore {
         this.loading = false
 
         if (result.status === 200) {
-          this.isLoggedIn = false
+          this.userId = undefined
+          this.userName = undefined
         } else {
           message.error("Не удалось разлогиниться. Попробуйте еще раз!")
         }

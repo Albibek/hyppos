@@ -8,6 +8,7 @@ import { Redirect, useLocation } from "react-router";
 import { config } from "../../config";
 import { observer } from "mobx-react-lite";
 import { useRootStore } from "../../store/RootStore";
+import { api } from "../../api";
 
 export const LoginPage = observer(
   function LoginPage() {
@@ -22,12 +23,16 @@ export const LoginPage = observer(
     }
 
     const userId = new URLSearchParams(location.search).get("userId")
+    const userName = new URLSearchParams(location.search).get("userLogin")
 
-    if (location.pathname === "/oauthCallback" && userId) {
-      authStore.login()
+    if (location.pathname === "/oauthCallback" && userName && userId) {
+      authStore.login(userId, userName)
+
+      // api.insertProject({ userId: 9047865, externalId: 290972976 })
 
       return <Redirect to="/"/>
     }
+
 
     return (
       <Layout className={classes.root}>

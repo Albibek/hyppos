@@ -22,6 +22,8 @@ import { observer } from "mobx-react-lite";
 import { useReviewPageStore } from "./store/ReviewPageStore";
 import { Card, Col, Row, Spin, Tree } from "antd";
 import { TreeItem } from "../../api";
+import { CommentForm } from "./components/Comment";
+import { useRootStore } from "../../store/RootStore";
 
 
 function makeOptions(file: string) {
@@ -59,6 +61,17 @@ function makeOptions(file: string) {
 
 
   return options
+}
+
+function makeLineWidget(editor: Editor, line: number, widget: ((reset: () => void) => JSX.Element)) {
+  const el = document.createElement("div")
+
+  const instance = editor.addLineWidget(line, el, { coverGutter: true, handleMouseEvents: false })
+
+  ReactDOM.render(widget(() =>{
+    instance.clear()
+    ReactDOM.unmountComponentAtNode(el)
+  }), el)
 }
 
 function editorDidMountHandler(editor: Editor) {
@@ -99,6 +112,7 @@ interface ReviewPageProps {
 
 export const ReviewPage = observer(
   function ReviewPage() {
+    const { authStore: { userName } } = useRootStore()
     const { rootContent, fileContent } = useReviewPageStore()
 
     React.useEffect(() => {
@@ -124,7 +138,6 @@ export const ReviewPage = observer(
                       rootContent.fetchChild("tech-tasks", [node.node.key.toString()])
                       : fileContent.fetchFileContent("tech-tasks", node.node.key.toString(), node.node.title?.toString() || "")
                   }}
-                  // onExpand={(keys) => console.log(keys)}
                   treeData={toComponentTreeDataStructure(rootContent.data)}
                 />
               )}
@@ -141,7 +154,14 @@ export const ReviewPage = observer(
                 className={classes.codemirror}
                 value={fileContent.data?.src || ""}
                 options={makeOptions(fileContent.data?.name || "")}
-                editorDidMount={editorDidMountHandler}
+                // editorDidMount={editorDidMountHandler}
+                onGutterClick={(editor, lineNumber) =>
+                  makeLineWidget(
+                    editor,
+                    lineNumber,
+                    (reset) => <CommentForm userName={userName || "Anonymous"} reset={reset}/>
+                  )
+                }
                 onBeforeChange={() => undefined}
               />
             )}

@@ -135,7 +135,7 @@ export const ReviewPage = observer(
                   autoExpandParent={false}
                   onSelect={(keys, node) => {
                     !node.node.isLeaf ?
-                      rootContent.fetchChild("tech-tasks", [node.node.key.toString()])
+                      rootContent.fetchChild("tech-tasks", node.node.key.toString())
                       : fileContent.fetchFileContent("tech-tasks", node.node.key.toString(), node.node.title?.toString() || "")
                   }}
                   treeData={toComponentTreeDataStructure(rootContent.data)}

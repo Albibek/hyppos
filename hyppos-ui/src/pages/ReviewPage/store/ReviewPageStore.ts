@@ -4,6 +4,25 @@ import { api, TreeItem } from "../../../api";
 import { makeStoreHook } from "../../../helpers/mobx";
 import { forkJoin } from "rxjs";
 
+function findNode(hash: string, tree: TreeItem[]): TreeItem | undefined {
+  let i = 0, found;
+
+  for (; i < tree.length; i++) {
+    const current = tree[i]
+
+    if (current.sha === hash) {
+      return current;
+    } else if (current.children !== undefined) {
+      found = findNode(hash, current.children);
+
+      if (found) {
+        return found;
+      }
+    }
+  }
+
+  return
+}
 
 class RootContentStore extends FetchStore {
   @observable data?: TreeItem[]
@@ -27,32 +46,12 @@ class RootContentStore extends FetchStore {
   }
 
 
-  @action.bound fetchChild(repoName: string, path: string[]) {
-    function findNode(tree: TreeItem[], hashes: string[]): TreeItem | undefined {
-      const [sha, ...rest] = hashes
-
-      const result = tree.find(it => it.sha === sha)
-
-
-      if (rest.length === 0) {
-        return result
-      }
-
-      if (!result || !result.children) {
-        return
-      }
-
-      return findNode(result.children, rest)
-    }
-
-    const dirHash = path[path.length - 1]
-
+  @action.bound fetchChild(repoName: string, path: string) {
     // @ts-ignore
-    const target = findNode(this.data, path)
+    const target = findNode(path, this.data)
 
-
-    if (dirHash && target) {
-      this.subscription = api.getRepoDirContent(repoName, dirHash)
+    if (path && target) {
+      this.subscription = api.getRepoDirContent(repoName, path)
         .subscribe(
           (result) => {
             runInAction(() => {

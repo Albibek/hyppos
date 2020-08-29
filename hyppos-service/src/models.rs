@@ -16,12 +16,14 @@ pub struct Project {
     pub user_id: uuid::Uuid,
     pub external_id: i64,
     pub created_at: DateTime<Utc>,
+    pub name: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NewProjectWithID {
     pub external_id: i64,
     pub user_id: uuid::Uuid,
+    pub name: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

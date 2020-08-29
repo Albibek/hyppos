@@ -54,6 +54,7 @@ pub fn insert_new_project(
         user_id: project.user_id,
         external_id: project.external_id,
         created_at: Utc::now().to_owned(),
+        name: project.name.clone(),
     };
 
     diesel::insert_into(projects)
@@ -84,6 +85,21 @@ pub(crate) async fn insert_project(
         return Ok(HttpResponse::Forbidden().finish());
     };
 
+    let token = session.get::<String>("token").unwrap().unwrap();
+
+    let repos: Vec<github_types::RepoDetails> = state
+        .github
+        .for_token(&token)
+        .get_user_repos(&user.login)
+        .await
+        .unwrap();
+    let repo_pos = repos
+        .iter()
+        .position(|ref r| r.id == new_project.external_id)
+        .unwrap();
+
+    let repo_name = repos[repo_pos].name.clone();
+
     let resp = web::block(move || {
         let db_user = users::find_user_by_ext_id(user.id, &conn).expect("finding user by ID");
         if db_user.is_none() {
@@ -96,6 +112,7 @@ pub(crate) async fn insert_project(
         let new_project = NewProjectWithID {
             external_id: new_project.external_id,
             user_id: db_user.id.to_owned(),
+            name: repo_name,
         };
         insert_new_project(&new_project, &conn).expect("inserting new project");
         Ok::<_, DieselError>(InsertResponse {

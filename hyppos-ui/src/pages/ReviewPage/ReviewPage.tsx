@@ -4,6 +4,7 @@ import classes from "./classes.module.scss";
 import { Editor, EditorConfiguration } from "codemirror"
 import { Controlled as CodeMirror } from "react-codemirror2"
 
+import { Comment } from "./types"
 import "codemirror/lib/codemirror.css"
 import "codemirror/theme/ayu-mirage.css";
 
@@ -16,7 +17,6 @@ import "codemirror/mode/python/python";
 import "codemirror/mode/rust/rust";
 
 
-import { fixtureComments } from "./ReviewPage.fixture";
 import { Comments } from "./components/Comments";
 import { observer } from "mobx-react-lite";
 import { useReviewPageStore } from "./store/ReviewPageStore";
@@ -24,6 +24,7 @@ import { Card, Col, Row, Spin, Tree } from "antd";
 import { TreeItem } from "../../api";
 import { CommentForm } from "./components/Comment";
 import { useRootStore } from "../../store/RootStore";
+import { runInAction } from "mobx";
 
 
 function makeOptions(file: string) {
@@ -74,14 +75,14 @@ function makeLineWidget(editor: Editor, line: number, widget: ((reset: () => voi
   }), el)
 }
 
-function editorDidMountHandler(editor: Editor) {
-  Object.entries(fixtureComments).forEach(([line, comments], index) => {
+function editorDidMountHandler(editor: Editor, comments: Comment[]) {
+  comments.forEach((comment, index) => {
     const el = document.createElement("div")
     el.setAttribute("id", "file-comments-" + index)
 
-    editor.addLineWidget(Number.parseInt(line) - 1, el, { coverGutter: true })
+    editor.addLineWidget(comment.lineNo - 1, el, { coverGutter: true })
 
-    ReactDOM.render(<Comments comments={comments}/>, el)
+    ReactDOM.render(<Comments comment={comment}/>, el)
   })
 }
 
@@ -117,10 +118,24 @@ export const ReviewPage = observer(
     const { rootContent, fileContent, insertCommentStore } = useReviewPageStore()
 
     const insertComment = React.useCallback((lineNo: number, message: string) => {
-      insertCommentStore.insertComment({
+      const newComment = {
         projectId, lineNo, message, fileId: fileContent.data?.hash || ""
+      }
+
+      insertCommentStore.insertComment(newComment)
+
+      runInAction(() => {
+        if (fileContent.data?.comments) {
+          fileContent.data.comments.push({
+            lineNo,
+            message,
+            user: { name: userName || "" },
+            createdAt: new Date(),
+            id: ""
+          })
+        }
       })
-    }, [insertCommentStore, projectId, fileContent.data?.hash])
+    }, [projectId, fileContent.data, insertCommentStore, userName])
 
     React.useEffect(() => {
       rootContent.fetchRoot(projectName, "master")
@@ -146,7 +161,7 @@ export const ReviewPage = observer(
                     !node.node.isLeaf ?
                       rootContent.fetchChild(projectName, node.node.key.toString())
                       : fileContent.fetchFileContent(
-                      projectName, node.node.key.toString(), node.node.title?.toString() || "")
+                      projectName, projectId, node.node.key.toString(), node.node.title?.toString() || "")
                   }}
                   treeData={toComponentTreeDataStructure(rootContent.data)}
                 />
@@ -164,7 +179,7 @@ export const ReviewPage = observer(
                 className={classes.codemirror}
                 value={fileContent.data?.src || ""}
                 options={makeOptions(fileContent.data?.name || "")}
-                // editorDidMount={editorDidMountHandler}
+                editorDidMount={(editor) => editorDidMountHandler(editor, fileContent.data?.comments || [])}
                 onGutterClick={(editor, lineNumber) =>
                   makeLineWidget(
                     editor,

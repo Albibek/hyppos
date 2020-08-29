@@ -2,6 +2,7 @@
 import { gatewayClient } from "./client";
 import { from } from "rxjs";
 import { map } from "rxjs/operators";
+import { Comment } from "../pages/ReviewPage/types";
 
 function logout() {
   return from(gatewayClient.get("/auth/logout"))
@@ -32,8 +33,18 @@ function getRepoFileContent(repoName: string, fileHash: string) {
   return from(gatewayClient.get<string>(`/gh/repos/${repoName}/files/${fileHash}`))
 }
 
-function getRepoFileComments(fileHash: string) {
-  return from(gatewayClient.get<string[]>("/comments", { params: { file_id: fileHash } }))
+function getRepoFileComments(fileHash: string, projectId: string) {
+  return from(gatewayClient.get<any[]>("/comments", { params: { file_id: fileHash, project_id: projectId } }))
+    .pipe(
+      map(v => v.data.map(it => ({
+        id: it.id,
+        lineNo: it.line_no,
+        message: it.message,
+        user: {
+          name: it.user_id
+        }
+      })) as Comment[])
+    )
 }
 
 export interface NewComment {

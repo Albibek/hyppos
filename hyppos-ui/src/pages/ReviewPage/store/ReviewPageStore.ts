@@ -3,6 +3,7 @@ import { action, observable, runInAction } from "mobx";
 import { api, NewComment, TreeItem } from "../../../api";
 import { makeStoreHook } from "../../../helpers/mobx";
 import { forkJoin } from "rxjs";
+import { Comment } from "../types"
 
 function findNode(hash: string, tree: TreeItem[]): TreeItem | undefined {
   let i = 0, found;
@@ -83,20 +84,19 @@ class RootContentStore extends FetchStore {
 class FileContentStore extends FetchStore {
   @observable data?: { name: string, hash: string, src: string, comments: Comment[] }
 
-  @action.bound fetchFileContent(repoName: string, fileHash: string, fileName: string) {
+  @action.bound fetchFileContent(repoName: string, progId: string, fileHash: string, fileName: string) {
     super.beforeLoad()
     this.data = undefined
 
     this.subscription = forkJoin({
       $src: api.getRepoFileContent(repoName, fileHash),
-      $comments: api.getRepoFileComments(fileHash)
+      $comments: api.getRepoFileComments(fileHash, progId)
     })
       .subscribe(
         (result) => {
           runInAction(() => {
-            console.log(result.$comments.data)
             // @ts-ignore
-            this.data = { name: fileName, hash: fileHash, src: result.$src.data, comments: [] } // result.$comments.data
+            this.data = { name: fileName, hash: fileHash, src: result.$src.data, comments: result.$comments }
             this.state = "done"
           })
         },

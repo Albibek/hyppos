@@ -28,12 +28,8 @@ export const LoginPage = observer(
     if (location.pathname === "/oauthCallback" && userName && userId) {
       authStore.login(userId, userName)
 
-      api.insertProject({ externalId: 290972976 })
-      api.insertProject({ externalId: 152435279 })
-      api.insertProject({ externalId: 108538541 })
-      api.insertProject({ externalId: 238864487 })
-      api.insertProject({ externalId: 199864636 })
-      api.insertProject({ externalId: 287694647 })
+      // TODO: заменить на 290972976
+      api.insertProject({ externalId: 217014430 })
 
       return <Redirect to="/"/>
     }

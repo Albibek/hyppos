@@ -6,29 +6,25 @@ import { observer } from "mobx-react-lite";
 
 
 interface CommentsProps {
-  comments: Comment[]
+  comment: Comment
 }
 
 export const Comments = observer(
-  function Comments({ comments }: CommentsProps) {
+  function Comments({ comment }: CommentsProps) {
     return (
       <Card style={{ margin: "10px 15px" }} bodyStyle={{ padding: 0 }}>
         <List>
-          {comments.map(comment => {
-            return (
-              <List.Item key={comment.id} style={{ padding: "10px 15px" }}>
-                <List.Item.Meta
-                  avatar={<UserOutlined/>}
-                  title={<Typography.Text strong>{comment.user.name}</Typography.Text>}
-                  description={
-                    <Typography.Text>
-                      {comment.message}
-                    </Typography.Text>
-                  }
-                />
-              </List.Item>
-            )
-          })}
+          <List.Item key={comment.id} style={{ padding: "10px 15px" }}>
+            <List.Item.Meta
+              avatar={<UserOutlined/>}
+              title={<Typography.Text strong>{comment.user.name}</Typography.Text>}
+              description={
+                <Typography.Text>
+                  {comment.message}
+                </Typography.Text>
+              }
+            />
+          </List.Item>
         </List>
       </Card>
     )

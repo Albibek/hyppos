@@ -27,7 +27,13 @@ export const CommentForm = observer(
                   <Typography.Text>
                     <TextArea value={state} onChange={e => setState(e.target.value)}/>
                   </Typography.Text>
-                  <Button type="primary" onClick={() => state ? insertComment(state) : undefined}>добавить коммент</Button>
+                  <Button type="primary" onClick={() => {
+                    if (state) {
+                      insertComment(state)
+                      reset()
+                    }
+                  }
+                  }>добавить коммент</Button>
                   <Button type="link" onClick={reset}>отмена</Button>
                 </div>
               }

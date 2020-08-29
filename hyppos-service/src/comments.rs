@@ -4,6 +4,7 @@ use uuid::Uuid;
 
 use actix_session::Session;
 use actix_web::{web, Error as ActixWebError, HttpResponse, Responder};
+use diesel::result::Error as DieselError;
 use serde::{Deserialize, Serialize};
 
 use crate::models::{Comment, NewComment};
@@ -83,11 +84,9 @@ pub(crate) async fn get_comments(
         .get()
         .expect("couldn't get db connection from pool");
 
-    // let user = session.get::<github_types::User>("user").unwrap().unwrap();
     let resp = web::block(move || {
-        let comments =
-            find_comments_by_file_id(query.file_id, &conn).expect("finding comments by file ID");
-        Ok::<_, ()>(comments)
+        let comments = find_comments_by_file_id(query.file_id, &conn)?;
+        Ok::<_, DieselError>(comments)
     })
     .await?;
 
@@ -112,14 +111,18 @@ pub(crate) async fn insert_comment(
         .get()
         .expect("couldn't get db connection from pool");
 
-    let user = session.get::<github_types::User>("user").unwrap().unwrap();
+    let user = match session.get::<github_types::User>("user")? {
+        Some(user) => user,
+        None => return Ok(HttpResponse::Forbidden().finish()),
+    };
+
     let resp = web::block(move || {
-        let db_user = users::find_user_by_ext_id(user.id, &conn).expect("finding user by ID");
+        let db_user = users::find_user_by_ext_id(user.id, &conn)?;
         if db_user.is_none() {
-            users::insert_new_user(user.id, &conn).expect("inserting new user");
+            users::insert_new_user(user.id, &conn)?;
         }
-        insert_new_comment(&new_comment, &conn).expect("inserting new comment");
-        Ok::<_, ()>(InsertResponse {
+        insert_new_comment(&new_comment, &conn)?;
+        Ok::<_, DieselError>(InsertResponse {
             status: "ok".to_string(),
         })
     })

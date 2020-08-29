@@ -128,9 +128,17 @@ pub(crate) async fn callback(
     session.set("token", token).expect("setting session field");
 
     let user: github_types::User = state.github.for_token(token).get_user().await.unwrap();
-    let user_duplicate = user.clone();
-    session.set("user", user).expect("setting user data");
+    session
+        .set("user", user.clone())
+        .expect("setting user data");
 
+    let repo: Vec<github_types::RepoDetails> = state
+        .github
+        .for_token(token)
+        .get_user_repos(&user.login)
+        .await
+        .unwrap();
+    dbg!(repo);
     //let html = format!(
     //r#"<html>
     //<head><title>OAuth2 Test</title></head>
@@ -146,7 +154,14 @@ pub(crate) async fn callback(
 
     //TODO: replace hardcode
     HttpResponse::TemporaryRedirect()
-        .header("location", format!("http://127.0.0.1:3000/oauthCallback?userId={}&userLogin={}", user_duplicate.id, user_duplicate.login))
+        //.header("location", "http://127.0.0.1:8000/login?success=true")
+        .header(
+            "location",
+            format!(
+                "http://127.0.0.1:8000/oauthCallback?userId={}&userLogin={}",
+                user.id, user.login
+            ),
+        )
         .finish()
 }
 

@@ -19,8 +19,13 @@ pub struct Project {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct NewProject {
+pub struct NewProjectWithID {
+    pub external_id: i64,
     pub user_id: uuid::Uuid,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NewProject {
     pub external_id: i64,
 }
 

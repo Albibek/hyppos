@@ -15,6 +15,7 @@ pub struct User {
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct RepoDetails {
+    pub id: i64,
     pub name: String,
     pub owner: User,
     pub private: bool,

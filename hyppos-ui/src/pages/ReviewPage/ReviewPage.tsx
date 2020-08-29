@@ -131,8 +131,10 @@ export const ReviewPage = observer(
               {rootContent.data && (
                 // WARN! Здесь тонна ошибок, но нет ни времени, ни сил исправлять
                 <Tree.DirectoryTree
-                  multiple
                   autoExpandParent={false}
+                  defaultExpandParent={false}
+                  defaultExpandAll={false}
+                  expandAction={"doubleClick"}
                   onSelect={(keys, node) => {
                     !node.node.isLeaf ?
                       rootContent.fetchChild("tech-tasks", node.node.key.toString())

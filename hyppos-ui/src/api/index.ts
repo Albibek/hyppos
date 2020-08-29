@@ -40,7 +40,6 @@ interface NewComment {
   commitId: string
   fileId: string
   projectId: string
-  userId: string
   message: string
 }
 
@@ -50,15 +49,13 @@ function insertComment(newComment: NewComment) {
     commit_id: newComment.commitId,
     file_id: newComment.fileId,
     project_id: newComment.projectId,
-    user_id: newComment.userId,
     message: newComment.message,
   }))
 }
 
 
-function insertProject(newProject: { userId: number, externalId: number }) {
+function insertProject(newProject: { externalId: number }) {
   return from(gatewayClient.post<string[]>("/projects", {
-    user_id: newProject.userId,
     external_id: newProject.externalId,
   }))
 }

@@ -6,3 +6,5 @@ CREATE TABLE projects (
   external_id BIGINT NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
 );
+
+CREATE INDEX ON projects(user_id);

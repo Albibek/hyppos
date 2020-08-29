@@ -96,6 +96,12 @@ async fn main() -> std::io::Result<()> {
                 web::scope("/")
                     .wrap(auth::AuthCheck)
                     .route("/comments", web::post().to(comments::insert_comment))
+                    .route(
+                        "/user/{user_id}/projects",
+                        web::get().to(users::get_projects),
+                    )
+                    .route("/projects", web::get().to(projects::get_projects))
+                    .route("/projects", web::post().to(projects::insert_project))
                     .route("/auth/logout", web::get().to(auth::logout)),
             )
     })

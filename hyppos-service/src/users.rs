@@ -8,6 +8,8 @@ use serde::Serialize;
 use crate::models::User;
 use crate::State;
 
+use crate::projects;
+
 pub fn find_user_by_id(
     uid: uuid::Uuid,
     conn: &PgConnection,
@@ -47,4 +49,21 @@ pub fn insert_new_user(ext_id: i64, conn: &PgConnection) -> Result<User, diesel:
     diesel::insert_into(users).values(&new_user).execute(conn)?;
 
     Ok(new_user)
+}
+
+pub(crate) async fn get_projects(
+    state: web::Data<State>,
+    path: web::Path<(Uuid,)>,
+) -> Result<HttpResponse, ActixWebError> {
+    let conn = state
+        .pool
+        .get()
+        .expect("couldn't get db connection from pool");
+    let resp = web::block(move || {
+        let projects = projects::find_projects_by_user_id(path.0, &conn).expect("select for projects");
+        Ok::<_, ()>(projects)
+    })
+    .await?;
+
+    Ok(HttpResponse::Ok().json(resp))
 }

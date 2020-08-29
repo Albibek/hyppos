@@ -1,5 +1,6 @@
 use crate::github_types::{
-    Blob, Branch, BranchDetails, CommitDetails, DirectoryListing, DirectoryUrl, Repo, User,
+    Blob, Branch, BranchDetails, CommitDetails, DirectoryListing, DirectoryUrl, Repo, RepoDetails,
+    User,
 };
 
 use reqwest::header::{self, HeaderMap, HeaderValue};
@@ -134,5 +135,21 @@ impl GithubClientForToken<'_> {
 
     pub async fn get_user(&self) -> Result<User, Error> {
         self.get_relative("user").await
+    }
+
+    pub async fn get_user_repos(&self, username: &str) -> Result<Vec<RepoDetails>, Error> {
+        self.get_relative(&format!("users/{}/repos", username))
+            .await
+    }
+
+    pub async fn get_own_user_repos(
+        &self,
+        username: &str,
+    ) -> Result<impl Iterator<Item = RepoDetails>, Error> {
+        Ok(self
+            .get_user_repos(username)
+            .await?
+            .into_iter()
+            .filter(|repo| !(repo.private || repo.fork)))
     }
 }

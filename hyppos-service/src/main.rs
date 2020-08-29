@@ -82,7 +82,7 @@ async fn main() -> std::io::Result<()> {
             .wrap(
                 CookieSession::private(&[0; 32])
                     .secure(false)
-                    .max_age(60)
+                    .max_age(3600)
                     .name("session"),
             )
             .wrap(Logger::default())

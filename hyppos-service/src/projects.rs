@@ -5,9 +5,10 @@ use uuid::Uuid;
 use actix_session::Session;
 
 use actix_web::{web, Error as ActixWebError, HttpResponse, Responder};
+use diesel::result::Error as DieselError;
 use serde::Serialize;
 
-use crate::models::{NewProject, Project};
+use crate::models::{NewProject, NewProjectWithID, Project};
 use crate::State;
 
 use crate::{github_types, users};
@@ -41,7 +42,7 @@ pub fn find_projects_by_user_id(
 }
 
 pub fn insert_new_project(
-    project: &NewProject,
+    project: &NewProjectWithID,
     conn: &PgConnection,
 ) -> Result<Project, diesel::result::Error> {
     use crate::schema::projects::dsl::*;
@@ -50,7 +51,7 @@ pub fn insert_new_project(
 
     let new_project = Project {
         id: _id,
-        user_id: project.user_id.to_owned(),
+        user_id: project.user_id,
         external_id: project.external_id,
         created_at: Utc::now().to_owned(),
     };
@@ -68,6 +69,7 @@ struct InsertResponse {
 }
 
 pub(crate) async fn insert_project(
+    session: Session,
     state: web::Data<State>,
     new_project: web::Json<NewProject>,
 ) -> Result<HttpResponse, ActixWebError> {
@@ -75,7 +77,22 @@ pub(crate) async fn insert_project(
         .pool
         .get()
         .expect("couldn't get db connection from pool");
+
+    let user = if let Some(user) = session.get::<github_types::User>("user").unwrap() {
+        user
+    } else {
+        return Ok(HttpResponse::Forbidden().finish());
+    };
+
     let resp = web::block(move || {
+        let db_user = users::find_user_by_ext_id(user.id, &conn)
+            .expect("finding user by ID")
+            .unwrap();
+
+        let new_project = NewProjectWithID {
+            external_id: new_project.external_id,
+            user_id: db_user.id.to_owned(),
+        };
         insert_new_project(&new_project, &conn).expect("inserting new project");
         Ok::<_, ()>(InsertResponse {
             status: "ok".to_string(),
@@ -103,12 +120,23 @@ pub(crate) async fn get_projects(
 
     let resp = web::block(move || {
         let db_user = users::find_user_by_ext_id(user.id, &conn).expect("finding user by ID");
-        let projects: Option<Vec<Project>> = match db_user {
-            None => Some(vec![]),
-            Some(u) => find_projects_by_user_id(u.id, &conn).expect("select for projects"),
-        };
+        if db_user.is_none() {
+            users::insert_new_user(user.id, &conn)?;
+        }
 
-        Ok::<_, ()>(projects)
+        let db_user = users::find_user_by_ext_id(user.id, &conn)
+            .expect("finding user by ID")
+            .unwrap();
+        let projects = find_projects_by_user_id(db_user.id, &conn)
+            .expect("select for projects")
+            .unwrap();
+
+        //let projects: Option<Vec<Project>> = match db_user {
+        //None => Some(vec![]),
+        //Some(u) => find_projects_by_user_id(u.id, &conn).expect("select for projects"),
+        //};
+
+        Ok::<_, DieselError>(projects)
     })
     .await?;
 

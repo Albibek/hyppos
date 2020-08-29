@@ -28,7 +28,6 @@ use crate::github::GithubClient;
 
 pub(crate) async fn index(session: Session, state: web::Data<State>) -> impl Responder {
     //let token: Option<String> = session.get("token").unwrap_or(None);
-
     let login = session
         .get::<String>("login")
         .unwrap()
@@ -91,6 +90,7 @@ async fn main() -> std::io::Result<()> {
             .route("/auth", web::post().to(auth::index))
             .route("/favicon.ico", web::get().to(index))
             .route("/", web::get().to(index))
+            .route("/comments", web::get().to(comments::get_comments))
             .service(
                 // this must be at the end of all routes
                 web::scope("/")

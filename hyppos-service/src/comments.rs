@@ -4,7 +4,7 @@ use uuid::Uuid;
 
 use actix_session::Session;
 use actix_web::{web, Error as ActixWebError, HttpResponse, Responder};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use crate::models::{Comment, NewComment};
 use crate::State;
@@ -67,6 +67,34 @@ pub fn insert_new_comment(
         .execute(conn)?;
 
     Ok(new_comment)
+}
+
+#[derive(Deserialize)]
+pub struct CommentsQuery {
+    file_id: String,
+}
+
+pub(crate) async fn get_comments(
+    state: web::Data<State>,
+    web::Query(query): web::Query<CommentsQuery>,
+) -> Result<HttpResponse, ActixWebError> {
+    let conn = state
+        .pool
+        .get()
+        .expect("couldn't get db connection from pool");
+
+    // let user = session.get::<github_types::User>("user").unwrap().unwrap();
+    let resp = web::block(move || {
+        let comments =
+            find_comments_by_file_id(query.file_id, &conn).expect("finding comments by file ID");
+        Ok::<_, ()>(comments)
+    })
+    .await?;
+
+    match resp {
+        Some(comments) => Ok(HttpResponse::Ok().json(comments)),
+        None => Ok(HttpResponse::NotFound().finish()),
+    }
 }
 
 #[derive(Serialize)]

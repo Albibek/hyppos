@@ -35,4 +35,8 @@ joinable!(comments -> projects (project_id));
 joinable!(comments -> users (user_id));
 joinable!(projects -> users (user_id));
 
-allow_tables_to_appear_in_same_query!(comments, projects, users,);
+allow_tables_to_appear_in_same_query!(
+    comments,
+    projects,
+    users,
+);

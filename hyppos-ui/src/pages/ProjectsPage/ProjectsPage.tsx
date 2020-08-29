@@ -3,10 +3,6 @@ import styles from "./styles.module.css";
 import { Card, Select } from 'antd';
 
 export class ProjectsPage extends PureComponent {
-  componentDidMount() {
-    // gatewayClient.get("/projects").then(result => console.log(result));
-  }
-
   state = {
     repos: [
       { link: '#', name: 'RustyRust', description: 'Seems very rusty', lang: 'rust' },

@@ -16,12 +16,14 @@ pub struct Project {
     pub user_id: uuid::Uuid,
     pub external_id: i64,
     pub created_at: DateTime<Utc>,
+    pub name: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NewProjectWithID {
     pub external_id: i64,
     pub user_id: uuid::Uuid,
+    pub name: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -45,6 +47,16 @@ pub struct Comment {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NewComment {
+    pub parent_id: Option<uuid::Uuid>,
+    pub project_id: uuid::Uuid,
+    pub commit_id: String,
+    pub file_id: String,
+    pub line_no: Option<i64>,
+    pub message: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NewCommentWithID {
     pub parent_id: Option<uuid::Uuid>,
     pub user_id: uuid::Uuid,
     pub project_id: uuid::Uuid,

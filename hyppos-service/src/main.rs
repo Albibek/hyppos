@@ -80,15 +80,9 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .data(state.clone())
             .wrap(
-                CookieSession::private(&[0; 32])
-                    .secure(false)
-                    .max_age(3600)
-                    .name("session"),
-            )
-            .wrap(Logger::default())
-            .wrap(
                 Cors::new()
                     .allowed_origin("http://127.0.0.1:3000")
+                    .allowed_origin("http://127.0.0.1:8000")
                     .allowed_methods(vec!["GET", "POST", "OPTIONS"])
                     .supports_credentials()
                     // .allowed_headers(vec![http::header::AUTHORIZATION, http::header::ACCEPT])
@@ -96,6 +90,13 @@ async fn main() -> std::io::Result<()> {
                     .max_age(3600)
                     .finish(),
             )
+            .wrap(
+                CookieSession::private(&[0; 32])
+                    .secure(false)
+                    .max_age(3600)
+                    .name("session"),
+            )
+            .wrap(Logger::default())
             .route("/{filename:.*\\..*}", web::get().to(files))
             .service(fs::Files::new("/static", "../public"))
             .route("/", web::get().to(index))

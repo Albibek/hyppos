@@ -64,7 +64,7 @@ pub(crate) async fn index(session: Session) -> impl Responder {
     </html>"#,
         user.unwrap_or(github_types::User {
             login: "anonymous".into(),
-            id: 0
+            id: 0,
         })
         .login,
         link,
@@ -127,8 +127,9 @@ pub(crate) async fn callback(
     let token = token.access_token().secret();
     info!("access token: {:?}", token);
     session.set("token", token).expect("setting session field");
-
     let user: github_types::User = state.github.for_token(token).get_user().await.unwrap();
+    let user_duplicate = user.clone();
+
     session.set("user", user).expect("setting user data");
 
     //let html = format!(

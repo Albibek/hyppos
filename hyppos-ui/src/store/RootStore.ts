@@ -26,7 +26,6 @@ class RootStore {
       .all(persistentStores)
       .then(() => {
         runInAction("finishAppLoading", () => {
-          console.log("fired")
           this.isAppLoading = false
         })
       })

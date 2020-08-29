@@ -29,7 +29,7 @@ const App = observer(
           <span>приложение загружается...</span>
         ) : (
           <Switch>
-            <Route path="/login" exact={true} component={LoginPage}/>
+            <Route path={["/login", "/oauthCallback"]} exact={true} component={LoginPage}/>
             <Route path="/404" exact={true} component={NotFoundPage}/>
 
             <Layout>

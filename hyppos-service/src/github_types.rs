@@ -1,3 +1,4 @@
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone)]
@@ -10,6 +11,18 @@ pub struct Repo {
 pub struct User {
     pub id: i64,
     pub login: String,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct RepoDetails {
+    pub name: String,
+    pub owner: User,
+    pub private: bool,
+    pub fork: bool,
+    pub description: Option<String>,
+    pub language: Option<String>,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
 }
 
 #[derive(Debug, Clone, Deserialize)]

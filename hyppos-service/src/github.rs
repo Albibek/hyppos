@@ -127,8 +127,35 @@ impl GithubClientForToken<'_> {
         self.get(url.get_directory_url()).await
     }
 
+    pub async fn list_directory_by_hash(
+        &self,
+        repo: &Repo,
+        hash: &str,
+    ) -> Result<DirectoryListing, Error> {
+        self.get_relative(&format!(
+            "repos/{}/{}/git/trees/{}",
+            repo.owner, repo.name, hash
+        ))
+        .await
+    }
+
     pub async fn get_file_contents(&self, url: &str) -> Result<Vec<u8>, Error> {
         let blob: Blob = self.get(url).await?;
+        // Why, GitHub, why?
+        base64::decode(&blob.content.replace('\n', "")).map_err(Error::from)
+    }
+
+    pub async fn get_file_contents_by_hash(
+        &self,
+        repo: &Repo,
+        hash: &str,
+    ) -> Result<Vec<u8>, Error> {
+        let blob: Blob = self
+            .get_relative(&format!(
+                "repos/{}/{}/git/blobs/{}",
+                repo.owner, repo.name, hash
+            ))
+            .await?;
         // Why, GitHub, why?
         base64::decode(&blob.content.replace('\n', "")).map_err(Error::from)
     }

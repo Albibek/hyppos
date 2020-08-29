@@ -131,22 +131,23 @@ pub(crate) async fn callback(
     let user: github_types::User = state.github.for_token(token).get_user().await.unwrap();
     session.set("user", user).expect("setting user data");
 
-    let html = format!(
-        r#"<html>
-    <head><title>OAuth2 Test</title></head>
-    <body>
-    Github user info:
-    <pre>{:?}</pre>
-    <a href="/">Home</a>
-    </body>
-    </html>"#,
-        serde_json::to_string(token)
-    );
-    HttpResponse::Ok().body(html)
-    // TODO: replace hardcode
-    //    HttpResponse::TemporaryRedirect()
-    //.header("location", "http://127.0.0.1:3000/login?success=true")
-    //        .finish()
+    //let html = format!(
+    //r#"<html>
+    //<head><title>OAuth2 Test</title></head>
+    //<body>
+    //Github user info:
+    //<pre>{:?}</pre>
+    //<a href="/">Home</a>
+    //</body>
+    //</html>"#,
+    //serde_json::to_string(token)
+    //);
+    //HttpResponse::Ok().body(html)
+
+    //TODO: replace hardcode
+    HttpResponse::TemporaryRedirect()
+        .header("location", "http://127.0.0.1:8000/login?success=true")
+        .finish()
 }
 
 pub(crate) struct AuthCheck;

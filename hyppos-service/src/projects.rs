@@ -95,17 +95,17 @@ pub(crate) async fn get_projects(
         .get()
         .expect("couldn't get db connection from pool");
 
-    let user = session.get::<github_types::User>("user").unwrap().unwrap();
+    let user = if let Some(user) = session.get::<github_types::User>("user").unwrap() {
+        user
+    } else {
+        return Ok(HttpResponse::Forbidden().finish());
+    };
 
     let resp = web::block(move || {
         let db_user = users::find_user_by_ext_id(user.id, &conn).expect("finding user by ID");
         let projects: Option<Vec<Project>> = match db_user {
-            None => {
-                Some(vec![])
-            },
-            Some(u) => {
-                find_projects_by_user_id(u.id, &conn).expect("select for projects")
-            }
+            None => Some(vec![]),
+            Some(u) => find_projects_by_user_id(u.id, &conn).expect("select for projects"),
         };
 
         Ok::<_, ()>(projects)

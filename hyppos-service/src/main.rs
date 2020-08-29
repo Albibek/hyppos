@@ -16,9 +16,12 @@ extern crate diesel;
 
 use diesel::prelude::*;
 use diesel::r2d2::{ConnectionManager, Pool};
+use std::path::PathBuf;
 
 use actix_files as fs;
-use actix_web::{middleware::Logger, web, App, HttpResponse, HttpServer, Responder};
+use actix_web::{
+    guard, middleware::Logger, web, App, HttpRequest, HttpResponse, HttpServer, Responder,
+};
 
 use actix_session::{CookieSession, Session};
 
@@ -28,12 +31,19 @@ use crate::auth::AuthState;
 use crate::github::GithubClient;
 
 pub(crate) async fn index(session: Session, state: web::Data<State>) -> impl Responder {
-    let user = session.get::<github_types::User>("user").unwrap();
-    if let Some(user) = user {
-        HttpResponse::Ok().body(format!("Hello, {}", user.login))
-    } else {
-        HttpResponse::Ok().body("Hello, mr. anonymous")
-    }
+    //    let user = session.get::<github_types::User>("user").unwrap();
+    //if let Some(user) = user {
+    //HttpResponse::Ok().body(format!("Hello, {}", user.login))
+    //} else {
+    //HttpResponse::Ok().body("Hello, mr. anonymous")
+    //}
+
+    fs::NamedFile::open("../public/".to_string() + "index.html")
+}
+
+pub(crate) async fn files(req: HttpRequest) -> impl Responder {
+    let path: PathBuf = req.match_info().query("filename").parse().unwrap();
+    fs::NamedFile::open("../public/".to_string() + path.to_str().unwrap())
 }
 
 #[derive(Clone)]
@@ -85,18 +95,32 @@ async fn main() -> std::io::Result<()> {
                     .max_age(3600)
                     .finish(),
             )
-            .service(fs::Files::new("/static", "../static"))
+            .route("/{filename:.*\\..*}", web::get().to(files))
+            .service(fs::Files::new("/static", "../public"))
+            .route("/", web::get().to(index))
+            .route("/login", web::get().to(index))
             .route("/auth/login", web::get().to(auth::login))
             .route("/auth/callback", web::get().to(auth::callback))
             .route("/auth", web::post().to(auth::index))
             .route("/favicon.ico", web::get().to(index))
-            .route("/", web::get().to(index))
             .route("/comments", web::get().to(comments::get_comments))
             .route("/gh/repos", web::get().to(gh_proxy::get_repos))
-            .route("/gh/repos/{name}", web::get().to(gh_proxy::list_repo_branches))
-            .route("/gh/repos/{name}/branch/{branch}", web::get().to(gh_proxy::list_repo_contents))
-            .route("/gh/repos/{name}/dirs/{hash}", web::get().to(gh_proxy::list_directory))
-            .route("/gh/repos/{name}/files/{hash}", web::get().to(gh_proxy::get_file))
+            .route(
+                "/gh/repos/{name}",
+                web::get().to(gh_proxy::list_repo_branches),
+            )
+            .route(
+                "/gh/repos/{name}/branch/{branch}",
+                web::get().to(gh_proxy::list_repo_contents),
+            )
+            .route(
+                "/gh/repos/{name}/dirs/{hash}",
+                web::get().to(gh_proxy::list_directory),
+            )
+            .route(
+                "/gh/repos/{name}/files/{hash}",
+                web::get().to(gh_proxy::get_file),
+            )
             .service(
                 // this must be at the end of all routes
                 web::scope("/")
@@ -110,6 +134,7 @@ async fn main() -> std::io::Result<()> {
                     .route("/projects", web::post().to(projects::insert_project))
                     .route("/auth/logout", web::get().to(auth::logout)),
             )
+            .default_service(web::route().guard(guard::Not(guard::Get())).to(index))
     })
     .bind("127.0.0.1:8000")?
     .run()

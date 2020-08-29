@@ -81,7 +81,7 @@ class RootContentStore extends FetchStore {
 }
 
 class FileContentStore extends FetchStore {
-  @observable data?: { name: string, src: string, comments: Comment[] }
+  @observable data?: { name: string, hash: string, src: string, comments: Comment[] }
 
   @action.bound fetchFileContent(repoName: string, fileHash: string, fileName: string) {
     super.beforeLoad()
@@ -95,7 +95,7 @@ class FileContentStore extends FetchStore {
         (result) => {
           runInAction(() => {
             // @ts-ignore
-            this.data = { name: fileName, src: result.$src.data, comments: [] } // result.$comments.data
+            this.data = { name: fileName, hash: fileHash, src: result.$src.data, comments: [] } // result.$comments.data
             this.state = "done"
           })
         },

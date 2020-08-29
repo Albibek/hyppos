@@ -116,11 +116,11 @@ export const ReviewPage = observer(
     const { authStore: { userName } } = useRootStore()
     const { rootContent, fileContent, insertCommentStore } = useReviewPageStore()
 
-    // const insertComment = React.useCallback((lineNo: number, message: string) => {
-    //   insertCommentStore.insertComment({
-    //     projectId, lineNo, message, fileId
-    //   })
-    // }, [insertCommentStore])
+    const insertComment = React.useCallback((lineNo: number, message: string) => {
+      insertCommentStore.insertComment({
+        projectId, lineNo, message, fileId: fileContent.data?.hash || ""
+      })
+    }, [insertCommentStore, projectId, fileContent.data?.hash])
 
     React.useEffect(() => {
       rootContent.fetchRoot(projectName, "master")
@@ -145,7 +145,8 @@ export const ReviewPage = observer(
                   onSelect={(keys, node) => {
                     !node.node.isLeaf ?
                       rootContent.fetchChild(projectName, node.node.key.toString())
-                      : fileContent.fetchFileContent(projectName, node.node.key.toString(), node.node.title?.toString() || "")
+                      : fileContent.fetchFileContent(
+                      projectName, node.node.key.toString(), node.node.title?.toString() || "")
                   }}
                   treeData={toComponentTreeDataStructure(rootContent.data)}
                 />
@@ -163,12 +164,17 @@ export const ReviewPage = observer(
                 className={classes.codemirror}
                 value={fileContent.data?.src || ""}
                 options={makeOptions(fileContent.data?.name || "")}
-                editorDidMount={editorDidMountHandler}
+                // editorDidMount={editorDidMountHandler}
                 onGutterClick={(editor, lineNumber) =>
                   makeLineWidget(
                     editor,
                     lineNumber,
-                    (reset) => <CommentForm userName={userName || "Anonymous"} reset={reset}/>
+                    (reset) =>
+                      <CommentForm
+                        userName={userName || "Anonymous"}
+                        insertComment={(message) => insertComment(lineNumber, message)}
+                        reset={reset}
+                      />
                   )
                 }
                 onBeforeChange={() => undefined}

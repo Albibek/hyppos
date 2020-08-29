@@ -38,7 +38,6 @@ function getRepoFileComments(fileHash: string) {
 
 export interface NewComment {
   lineNo: number
-  commitId: string
   fileId: string
   projectId: string
   message: string
@@ -47,7 +46,6 @@ export interface NewComment {
 function insertComment(newComment: NewComment) {
   return from(gatewayClient.post<string[]>("/comments", {
     line_no: newComment.lineNo,
-    commit_id: newComment.commitId,
     file_id: newComment.fileId,
     project_id: newComment.projectId,
     message: newComment.message,

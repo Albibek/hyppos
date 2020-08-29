@@ -45,9 +45,9 @@ pub(crate) fn configure() -> AuthState {
         AuthUrl::new(GITHUB_AUTH_URL.to_string()).expect("good auth url"),
         Some(TokenUrl::new(GITHUB_TOKEN_URL.to_string()).expect("good token URL")),
     )
-        .set_redirect_url(
-            RedirectUrl::new(AUTH_CALLBACK_URL.to_string()).expect("correct redirect URL"),
-        );
+    .set_redirect_url(
+        RedirectUrl::new(AUTH_CALLBACK_URL.to_string()).expect("correct redirect URL"),
+    );
     AuthState { client }
 }
 
@@ -64,9 +64,9 @@ pub(crate) async fn index(session: Session) -> impl Responder {
     </html>"#,
         user.unwrap_or(github_types::User {
             login: "anonymous".into(),
-            id: 0,
+            id: 0
         })
-            .login,
+        .login,
         link,
         link
     );
@@ -95,6 +95,7 @@ pub(crate) fn login(data: web::Data<State>) -> HttpResponse {
 
 pub(crate) fn logout(session: Session) -> HttpResponse {
     session.remove("token");
+    session.remove("user");
     HttpResponse::Found()
         .header(header::LOCATION, "/".to_string())
         .finish()
@@ -125,31 +126,37 @@ pub(crate) async fn callback(
 
     let token = token.access_token().secret();
     info!("access token: {:?}", token);
-    session
-        .set(
-            "token",
-            serde_json::to_string(token).expect("serializing token"),
-        )
-        .expect("setting session field");
+    session.set("token", token).expect("setting session field");
 
     let user: github_types::User = state.github.for_token(token).get_user().await.unwrap();
-    let user_duplicate = user.clone();
-
     session.set("user", user).expect("setting user data");
 
-    // TODO: replace hardcode
+    //let html = format!(
+    //r#"<html>
+    //<head><title>OAuth2 Test</title></head>
+    //<body>
+    //Github user info:
+    //<pre>{:?}</pre>
+    //<a href="/">Home</a>
+    //</body>
+    //</html>"#,
+    //serde_json::to_string(token)
+    //);
+    //HttpResponse::Ok().body(html)
+
+    //TODO: replace hardcode
     HttpResponse::TemporaryRedirect()
-        .header("location", format!("http://127.0.0.1:3000/oauthCallback?userId={}&userLogin={}", user_duplicate.id, user_duplicate.login))
+        .header("location", "http://127.0.0.1:8000/login?success=true")
         .finish()
 }
 
 pub(crate) struct AuthCheck;
 
 impl<S, B> Transform<S> for AuthCheck
-    where
-        S: Service<Request=ServiceRequest, Response=ServiceResponse<B>, Error=ActixWebError>,
-        S::Future: 'static,
-        B: 'static,
+where
+    S: Service<Request = ServiceRequest, Response = ServiceResponse<B>, Error = ActixWebError>,
+    S::Future: 'static,
+    B: 'static,
 {
     type Request = ServiceRequest;
     type Response = ServiceResponse<B>;
@@ -168,15 +175,15 @@ pub(crate) struct AuthCheckMiddleware<S> {
 }
 
 impl<S, B> Service for AuthCheckMiddleware<S>
-    where
-        S: Service<Request=ServiceRequest, Response=ServiceResponse<B>, Error=ActixWebError>,
-        S::Future: 'static,
-        B: 'static,
+where
+    S: Service<Request = ServiceRequest, Response = ServiceResponse<B>, Error = ActixWebError>,
+    S::Future: 'static,
+    B: 'static,
 {
     type Request = ServiceRequest;
     type Response = ServiceResponse<B>;
     type Error = ActixWebError;
-    type Future = Pin<Box<dyn Future<Output=Result<Self::Response, Self::Error>>>>;
+    type Future = Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>>>>;
 
     fn poll_ready(&mut self, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
         self.service.poll_ready(cx)

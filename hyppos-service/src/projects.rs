@@ -85,16 +85,20 @@ pub(crate) async fn insert_project(
     };
 
     let resp = web::block(move || {
+        let db_user = users::find_user_by_ext_id(user.id, &conn).expect("finding user by ID");
+        if db_user.is_none() {
+            users::insert_new_user(user.id, &conn)?;
+        }
+
         let db_user = users::find_user_by_ext_id(user.id, &conn)
             .expect("finding user by ID")
             .unwrap();
-
         let new_project = NewProjectWithID {
             external_id: new_project.external_id,
             user_id: db_user.id.to_owned(),
         };
         insert_new_project(&new_project, &conn).expect("inserting new project");
-        Ok::<_, ()>(InsertResponse {
+        Ok::<_, DieselError>(InsertResponse {
             status: "ok".to_string(),
         })
     })
@@ -119,11 +123,6 @@ pub(crate) async fn get_projects(
     };
 
     let resp = web::block(move || {
-        let db_user = users::find_user_by_ext_id(user.id, &conn).expect("finding user by ID");
-        if db_user.is_none() {
-            users::insert_new_user(user.id, &conn)?;
-        }
-
         let db_user = users::find_user_by_ext_id(user.id, &conn)
             .expect("finding user by ID")
             .unwrap();

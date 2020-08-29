@@ -27,12 +27,15 @@ pub fn find_comments_by_user_id(
 
 pub fn find_comments_by_file_id(
     fid: String,
+    prid: Uuid,
     conn: &PgConnection,
 ) -> Result<Option<Vec<Comment>>, diesel::result::Error> {
     use crate::schema::comments::dsl::*;
 
     let all_comments = comments
+        //filter(file_id.eq(fid) && project_id.eq(prid))
         .filter(file_id.eq(fid))
+        .filter(project_id.eq(prid))
         .load::<Comment>(conn)
         .optional()?;
 
@@ -73,6 +76,7 @@ pub fn insert_new_comment(
 #[derive(Deserialize)]
 pub struct CommentsQuery {
     file_id: String,
+    project_id: Uuid,
 }
 
 pub(crate) async fn get_comments(
@@ -85,7 +89,7 @@ pub(crate) async fn get_comments(
         .expect("couldn't get db connection from pool");
 
     let resp = web::block(move || {
-        let comments = find_comments_by_file_id(query.file_id, &conn)?;
+        let comments = find_comments_by_file_id(query.file_id, query.project_id, &conn)?;
         Ok::<_, DieselError>(comments)
     })
     .await?;
@@ -127,7 +131,7 @@ pub(crate) async fn insert_comment(
             user_id: db_user.id,
             parent_id: new_comment.parent_id,
             project_id: new_comment.project_id,
-            commit_id: new_comment.commit_id.to_owned(),
+            commit_id: new_comment.commit_id.clone(),
             file_id: new_comment.file_id.to_owned(),
             line_no: new_comment.line_no,
             message: new_comment.message.to_owned(),

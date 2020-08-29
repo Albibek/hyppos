@@ -4,7 +4,7 @@ table! {
         parent_id -> Uuid,
         user_id -> Uuid,
         project_id -> Uuid,
-        commit_id -> Text,
+        commit_id -> Nullable<Text>,
         file_id -> Text,
         line_no -> Nullable<Int8>,
         message -> Text,

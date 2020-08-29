@@ -172,11 +172,13 @@ impl GithubClientForToken<'_> {
     pub async fn get_own_user_repos(
         &self,
         username: &str,
-    ) -> Result<impl Iterator<Item = RepoDetails>, Error> {
+        //) -> Result<impl Iterator<Item = RepoDetails>, Error> {
+    ) -> Result<Vec<RepoDetails>, Error> {
         Ok(self
             .get_user_repos(username)
             .await?
             .into_iter()
-            .filter(|repo| !(repo.private || repo.fork)))
+            .filter(|repo| !(repo.private || repo.fork))
+            .collect())
     }
 }

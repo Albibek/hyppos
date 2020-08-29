@@ -90,9 +90,11 @@ pub(crate) async fn insert_project(
     let repos: Vec<github_types::RepoDetails> = state
         .github
         .for_token(&token)
-        .get_user_repos(&user.login)
+        //.get_user_repos(&user.login)
+        .get_user_repos("Albibek")
         .await
         .unwrap();
+
     let repo_pos = repos
         .iter()
         .position(|ref r| r.id == new_project.external_id)

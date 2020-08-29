@@ -31,8 +31,8 @@ pub(crate) async fn get_repos(
             .for_token(&token)
             .get_own_user_repos(&user.login)
             .await,
-    )?
-    .collect();
+    )?;
+    //.collect();
     HttpResponse::Ok().json(repos).await
 }
 
@@ -88,7 +88,7 @@ pub(crate) async fn list_directory(
 pub(crate) async fn get_file(
     file_info: web::Path<(String, String)>,
     state: web::Data<State>,
-    session: Session
+    session: Session,
 ) -> Result<HttpResponse, actix_web::Error> {
     let (repo, file_sha) = &*file_info;
     let (user, token) = get_user_token(session)?;
